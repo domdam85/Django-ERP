@@ -1,0 +1,212 @@
+{% extends "delivery/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Van Loading</h2>
+            <div class="badge bg-{% if object.status == 'completed' %}success
+                              {% elif object.status == 'in_progress' %}primary
+                              {% else %}secondary{% endif %}">
+                {{ object.get_status_display }}
+            </div>
+            
+            {% if object.status != 'completed' %}
+                <div class="float-end">
+                    <button type="button" class="btn btn-outline-primary" id="scanButton">
+                        <i class="bi bi-upc-scan"></i> Scan Orders
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post" id="loadingForm">
+                {% csrf_token %}
+                <input type="hidden" name="status" id="statusField" value="{{ object.status }}">
+                
+                <!-- Orders List -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Orders to Load</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="ordersTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px"></th>
+                                        <th>Order #</th>
+                                        <th>Customer</th>
+                                        <th>Stop #</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for delivery in deliveries %}
+                                        <tr>
+                                            <td>
+                                                <div class="form-check">
+                                                    <input type="checkbox" 
+                                                           class="form-check-input order-check" 
+                                                           id="order_{{ delivery.order.id }}"
+                                                           data-order-id="{{ delivery.order.id }}"
+                                                           {% if object.status == 'completed' %}disabled checked{% endif %}>
+                                                </div>
+                                            </td>
+                                            <td>{{ delivery.order.order_number }}</td>
+                                            <td>
+                                                <strong>{{ delivery.order.customer.name }}</strong><br>
+                                                <small>{{ delivery.order.department }}</small>
+                                            </td>
+                                            <td>{{ delivery.stop.sequence }}</td>
+                                            <td>
+                                                <span class="status-badge badge bg-secondary">Pending</span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Loading Notes</h4>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="form-control" name="notes" rows="3" 
+                                placeholder="Add any notes about van loading"
+                                {% if object.status == 'completed' %}disabled{% endif %}>{{ object.notes }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="d-grid gap-2">
+                    {% if object.status != 'completed' %}
+                        <button type="submit" class="btn btn-success btn-lg" id="completeButton">
+                            Complete Van Loading
+                        </button>
+                    {% endif %}
+                    <a href="{% url 'delivery:route-overview' %}" class="btn btn-outline-secondary">
+                        Back to Route Overview
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Loading Progress -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Loading Progress</h4>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: 0%" id="loadingProgress"></div>
+                    </div>
+                    <p class="text-center mb-0">
+                        <span id="loadedCount">0</span> of <span id="totalCount">{{ deliveries|length }}</span> orders loaded
+                    </p>
+                </div>
+            </div>
+
+            <!-- Verification Steps -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Loading Steps</h4>
+                </div>
+                <div class="card-body">
+                    <div class="steps">
+                        <div class="step {% if object.status != 'pending' %}completed{% endif %}">
+                            <div class="step-icon">
+                                <i class="bi bi-1-circle{% if object.status != 'pending' %}-fill{% endif %}"></i>
+                            </div>
+                            <div class="step-text">Start Loading</div>
+                        </div>
+                        <div class="step {% if object.status == 'completed' %}completed{% endif %}">
+                            <div class="step-icon">
+                                <i class="bi bi-2-circle{% if object.status == 'completed' %}-fill{% endif %}"></i>
+                            </div>
+                            <div class="step-text">Verify Orders</div>
+                        </div>
+                        <div class="step {% if object.status == 'completed' %}completed{% endif %}">
+                            <div class="step-icon">
+                                <i class="bi bi-3-circle{% if object.status == 'completed' %}-fill{% endif %}"></i>
+                            </div>
+                            <div class="step-text">Complete Loading</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.order-check');
+    const completeButton = document.getElementById('completeButton');
+    const progressBar = document.getElementById('loadingProgress');
+    const loadedCountEl = document.getElementById('loadedCount');
+    const totalCount = checkboxes.length;
+
+    function updateProgress() {
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const percentage = (checkedCount / totalCount) * 100;
+        
+        progressBar.style.width = `${percentage}%`;
+        loadedCountEl.textContent = checkedCount;
+        
+        if (completeButton) {
+            completeButton.disabled = checkedCount !== totalCount;
+        }
+    }
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const row = this.closest('tr');
+            const badge = row.querySelector('.status-badge');
+            
+            if (this.checked) {
+                badge.className = 'status-badge badge bg-success';
+                badge.textContent = 'Loaded';
+            } else {
+                badge.className = 'status-badge badge bg-secondary';
+                badge.textContent = 'Pending';
+            }
+            
+            updateProgress();
+        });
+    });
+
+    const loadingForm = document.getElementById('loadingForm');
+    if (loadingForm) {
+        loadingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('statusField').value = 'completed';
+            this.submit();
+        });
+    }
+
+    const scanButton = document.getElementById('scanButton');
+    if (scanButton) {
+        scanButton.addEventListener('click', function() {
+            // TODO: Implement barcode scanning
+            alert('Barcode scanning functionality to be implemented');
+        });
+    }
+
+    // Initialize progress on load
+    updateProgress();
+});
+</script>
+
+{% endblock %}
+{% endblock %}

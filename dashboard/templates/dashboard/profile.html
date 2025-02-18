@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - ERP System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Profile Information</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Personal Information -->
+                        <div class="mb-4">
+                            <h5>Personal Information</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="first_name" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="last_name" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.profile.phone|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Role Information -->
+                        <div class="mb-4">
+                            <h5>Role Information</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Role:</strong> {{ user.groups.all.0.name|title|default:'No Role Assigned' }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Member Since:</strong> {{ user.date_joined|date:"F j, Y" }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preferences -->
+                        <div class="mb-4">
+                            <h5>Preferences</h5>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {% if user.profile.email_notifications %}checked{% endif %}>
+                                        <label class="form-check-label" for="email_notifications">
+                                            Receive Email Notifications
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="timezone" class="form-label">Timezone</label>
+                                    <select class="form-select" id="timezone" name="timezone">
+                                        <option value="UTC" {% if user.profile.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                        <option value="US/Pacific" {% if user.profile.timezone == 'US/Pacific' %}selected{% endif %}>US/Pacific</option>
+                                        <option value="US/Mountain" {% if user.profile.timezone == 'US/Mountain' %}selected{% endif %}>US/Mountain</option>
+                                        <option value="US/Central" {% if user.profile.timezone == 'US/Central' %}selected{% endif %}>US/Central</option>
+                                        <option value="US/Eastern" {% if user.profile.timezone == 'US/Eastern' %}selected{% endif %}>US/Eastern</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Change Password -->
+                        <div class="mb-4">
+                            <h5>Change Password</h5>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="current_password" class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" id="current_password" name="current_password">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password">
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-text">
+                                        Leave password fields empty if you don't want to change it.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

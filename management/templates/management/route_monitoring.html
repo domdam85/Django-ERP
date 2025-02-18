@@ -1,0 +1,217 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% load management_filters %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Route Monitoring</h1>
+    
+    <!-- Route Status Overview -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h4 class="mb-2">Active Routes</h4>
+                    <h2 class="mb-0">{{ active_routes|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h4 class="mb-2">Completed Stops</h4>
+                    <h2 class="mb-0">{{ active_routes|total_completed_stops }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h4 class="mb-2">In Progress</h4>
+                    <h2 class="mb-0">{{ active_routes|total_in_progress_stops }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <h4 class="mb-2">Remaining</h4>
+                    <h2 class="mb-0">{{ active_routes|total_remaining_stops }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Routes -->
+    <div class="row">
+        {% for route in active_routes %}
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">{{ route.name }}</h5>
+                            <small>Driver: {{ route.delivery_driver.get_full_name }}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="progress progress-summary">
+                                {% with progress=route_progress|get_item:route.id %}
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ progress.completed_stops|percentage:progress.total_stops }}%"
+                                     aria-valuenow="{{ progress.completed_stops|percentage:progress.total_stops }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100"></div>
+                                {% endwith %}
+                            </div>
+                            <small>{{ route_progress|get_item:route.id|get_item:'completed_stops' }} / {{ route_progress|get_item:route.id|get_item:'total_stops' }} Stops</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Route Map -->
+                    <div class="mb-4 map-container">
+                        <div id="map-{{ route.id }}" class="route-map" style="height: 100%; width: 100%;"></div>
+                    </div>
+
+                    <!-- Stop Progress -->
+                    <div class="route-stops mb-4">
+                        {% for stop in route.stops.all %}
+                        <div class="stop-list-item d-flex justify-content-between align-items-center mb-2 p-2 border rounded
+                                    {% if stop.id in route_progress|get_item:route.id|get_item:'completed_stops_ids' %}bg-success text-white{% endif %}
+                                    {% if stop.id in route_progress|get_item:route.id|get_item:'in_progress_stops_ids' %}bg-warning{% endif %}">
+                            <div>
+                                <span class="stop-number">{{ stop.sequence }}.</span>
+                                {{ stop.customer.name }}
+                            </div>
+                            <div class="stop-status">
+                                {% if stop.id in route_progress|get_item:route.id|get_item:'completed_stops_ids' %}
+                                <i class="fas fa-check-circle"></i> Completed
+                                {% elif stop.id in route_progress|get_item:route.id|get_item:'in_progress_stops_ids' %}
+                                <i class="fas fa-clock"></i> In Progress
+                                {% else %}
+                                <i class="fas fa-circle"></i> Pending
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Van Inventory -->
+                    {% with van_inventory=route_progress|get_item:route.id|get_item:'van_inventory' %}
+                    {% if van_inventory %}
+                    <div class="inventory-section">
+                        <h6>Van Inventory</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Quantity</th>
+                                        <th>Remaining</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in van_inventory.items.all %}
+                                    <tr>
+                                        <td>{{ item.product.name }}</td>
+                                        <td>{{ item.initial_quantity }}</td>
+                                        <td>
+                                            {% with remaining=item.remaining_quantity %}
+                                            <span class="badge {% if remaining < 5 %}bg-danger{% elif remaining < 10 %}bg-warning{% else %}bg-success{% endif %}">
+                                                {{ remaining }}
+                                            </span>
+                                            {% endwith %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        No van inventory data available
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col">
+            <div class="alert alert-info">
+                No active routes at the moment
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Store route coordinates data from server
+const routeData = JSON.parse('{{ route_coordinates|escapejs }}');
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Load Google Maps script dynamically
+    const script = document.createElement('script');
+    script.src = 'https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}';
+    script.onload = initializeMaps;
+    document.head.appendChild(script);
+
+    // Auto-refresh the page every 60 seconds
+    setInterval(function() {
+        location.reload();
+    }, 60000);
+});
+
+function initializeMaps() {
+    // Initialize maps for each route
+    Object.keys(routeData).forEach(routeId => {
+        const coordinates = routeData[routeId];
+        if (coordinates && coordinates.length > 0) {
+            initializeRouteMap(routeId, coordinates);
+        }
+    });
+}
+
+function initializeRouteMap(routeId, coordinates) {
+    try {
+        const mapElement = document.getElementById(`map-${routeId}`);
+        if (!mapElement || !coordinates || coordinates.length === 0) return;
+
+        const map = new google.maps.Map(mapElement, {
+            zoom: 12,
+            center: coordinates[0],
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+
+        // Add markers for each stop
+        coordinates.forEach((coord, index) => {
+            if (coord && coord.lat && coord.lng) {
+                new google.maps.Marker({
+                    position: coord,
+                    map: map,
+                    label: (index + 1).toString()
+                });
+            }
+        });
+
+        // Draw route path
+        if (coordinates.length > 1) {
+            new google.maps.Polyline({
+                path: coordinates,
+                geodesic: true,
+                strokeColor: '#FF0000',
+                strokeOpacity: 1.0,
+                strokeWeight: 2,
+                map: map
+            });
+        }
+    } catch (error) {
+        console.error(`Error initializing map for route ${routeId}:`, error);
+    }
+}
+</script>
+{% endblock %}

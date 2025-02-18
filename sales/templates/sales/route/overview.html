@@ -1,0 +1,88 @@
+{% extends "sales/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Today's Route</h2>
+            <button id="beginRoute" class="btn btn-primary float-end">Begin Route</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="route-list" id="routeList">
+                {% for customer in customers %}
+                    <div class="card mb-3 route-stop" data-customer-id="{{ customer.id }}">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <span class="drag-handle">☰</span>
+                                </div>
+                                <div class="col">
+                                    <h5 class="mb-1">{{ customer.name }}</h5>
+                                    <p class="mb-1">{{ customer.address }}</p>
+                                    <small>Contact: {{ customer.contact_person }} - {{ customer.phone }}</small>
+                                </div>
+                                <div class="col-auto">
+                                    <span class="badge bg-secondary">Stop #{{ customer.route_sequence }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="alert alert-info">No stops scheduled for today.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize drag and drop
+    var routeList = document.getElementById('routeList');
+    Sortable.create(routeList, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function(evt) {
+            // Update sequence numbers visually
+            document.querySelectorAll('.route-stop').forEach((stop, index) => {
+                stop.querySelector('.badge').textContent = `Stop #${index + 1}`;
+            });
+            
+            // TODO: Add AJAX call to update sequence in database
+        }
+    });
+
+    // Begin route button
+    document.getElementById('beginRoute').addEventListener('click', function() {
+        const firstCustomer = document.querySelector('.route-stop');
+        if (firstCustomer) {
+            const customerId = firstCustomer.dataset.customerId;
+            window.location.href = `{% url 'sales:customer-stop' 0 %}`.replace('0', customerId);
+        }
+    });
+});
+</script>
+{% endblock %}
+
+<style>
+.drag-handle {
+    cursor: move;
+    font-size: 1.2em;
+    color: #6c757d;
+}
+
+.route-stop {
+    transition: background-color 0.3s ease;
+}
+
+.route-stop:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}

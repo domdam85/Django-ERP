@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h2>QuickBooks Integration</h2>
+    
+    <!-- Status Overview -->
+    <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
+        <!-- Connection Status -->
+        <div class="col">
+            <div class="card h-100 {% if settings and settings.sync_enabled %}bg-success{% else %}bg-danger{% endif %} text-white">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas {% if settings and settings.sync_enabled %}fa-link{% else %}fa-unlink{% endif %} me-2"></i>
+                        Connection Status
+                    </h5>
+                    <p class="card-text">
+                        {% if settings and settings.sync_enabled %}
+                            Connected & Enabled
+                        {% else %}
+                            Not Connected
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Records -->
+        <div class="col">
+            <div class="card h-100 bg-dark text-white">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-database me-2"></i>
+                        Total Records
+                    </h5>
+                    <p class="card-text">
+                        {{ sync_stats.total }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Synced Records -->
+        <div class="col">
+            <div class="card h-100 bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-sync me-2"></i>
+                        Synced Records
+                    </h5>
+                    <p class="card-text">
+                        {{ sync_stats.synced }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Errors -->
+        <div class="col">
+            <div class="card h-100 {% if sync_stats.error > 0 %}bg-danger{% else %}bg-success{% endif %} text-white">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas {% if sync_stats.error > 0 %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %} me-2"></i>
+                        Sync Errors
+                    </h5>
+                    <p class="card-text">
+                        {{ sync_stats.error }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="btn-group">
+                        <a href="{% url 'admin_tools:quickbooks_settings' %}" class="btn btn-primary">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a>
+                        <a href="{% url 'admin_tools:quickbooks_sync_dashboard' %}" class="btn btn-success">
+                            <i class="fas fa-sync me-2"></i>Sync Dashboard
+                        </a>
+                        <a href="{% url 'admin_tools:quickbooks_sync_history' %}" class="btn btn-info">
+                            <i class="fas fa-history me-2"></i>Sync History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

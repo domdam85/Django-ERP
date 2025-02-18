@@ -1,0 +1,275 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Route Assignment</h1>
+    
+    <!-- Route Management Tools -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-primary" id="saveChanges">Save Changes</button>
+                        <button class="btn btn-secondary" id="optimizeRoutes">Optimize Routes</button>
+                        <button class="btn btn-info" id="balanceLoads">Balance Loads</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route Assignment Interface -->
+    <div class="row">
+        <!-- Unassigned Customers -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Unassigned Customers</h5>
+                </div>
+                <div class="card-body">
+                    <div class="drop-container drop-target" id="unassignedCustomers">
+                        {% for customer in unassigned_customers %}
+                        <div class="draggable-item" draggable="true" data-customer-id="{{ customer.id }}">
+                            <i class="fas fa-grip-lines me-2"></i>
+                            {{ customer.name }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Routes by Day -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                        {% for day in days_of_week %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if forloop.first %}active{% endif %}" 
+                               data-bs-toggle="tab" 
+                               href="#{{ day|lower }}" 
+                               role="tab">{{ day }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        {% for day in days_of_week %}
+                        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+                             id="{{ day|lower }}" 
+                             role="tabpanel">
+                            
+                            {% for route in routes %}
+                            {% if route.day == day %}
+                            <div class="sortable-container mb-4">
+                                <div class="route-header d-flex justify-content-between align-items-center mb-2">
+                                    <h5>{{ route.name }}</h5>
+                                    <div class="route-stats">
+                                        <span class="badge bg-primary">{{ route_stats|get_item:route.id|get_item:'total_stops' }} Stops</span>
+                                        <span class="badge bg-success">{{ route_stats|get_item:route.id|get_item:'completed_stops' }} Completed</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Route Assignment Dropdowns -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <select class="form-select sales-rep-select" data-route-id="{{ route.id }}">
+                                            <option value="">Select Sales Rep</option>
+                                            {% for rep in sales_reps %}
+                                            <option value="{{ rep.id }}" 
+                                                    {% if rep.id == route.sales_rep_id %}selected{% endif %}>
+                                                {{ rep.get_full_name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select class="form-select driver-select" data-route-id="{{ route.id }}">
+                                            <option value="">Select Driver</option>
+                                            {% for driver in drivers %}
+                                            <option value="{{ driver.id }}"
+                                                    {% if driver.id == route.delivery_driver_id %}selected{% endif %}>
+                                                {{ driver.get_full_name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Customer Stops -->
+                                <div class="drop-container drop-target" data-route-id="{{ route.id }}">
+                                    {% for stop in route.stops.all %}
+                                    <div class="draggable-item" draggable="true" data-stop-id="{{ stop.id }}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="fas fa-grip-lines me-2"></i>
+                                                <span class="stop-number">{{ stop.sequence }}.</span>
+                                                {{ stop.customer.name }}
+                                            </div>
+                                            <div class="action-buttons">
+                                                <button class="btn btn-sm btn-outline-danger remove-stop">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/route-assignment.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/route-assignment.js' %}"></script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enable drag and drop functionality
+    const unassignedList = document.getElementById('unassignedCustomers');
+    const dropTargets = document.querySelectorAll('.drop-target');
+    
+    // Drag start handler
+    function handleDragStart(e) {
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+            type: this.closest('#unassignedCustomers') ? 'customer' : 'stop',
+            id: this.dataset.customerId || this.dataset.stopId,
+            sourceRouteId: this.closest('.drop-target')?.dataset.routeId
+        }));
+        this.classList.add('dragging');
+    }
+    
+    // Drag end handler
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+    }
+    
+    // Drag over handler
+    function handleDragOver(e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    }
+    
+    // Drag leave handler
+    function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+    }
+    
+    // Drop handler
+    function handleDrop(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        const targetRouteId = this.dataset.routeId;
+        
+        // Handle the drop based on the item type and source
+        if (data.type === 'customer') {
+            // Add customer to route
+            addCustomerToRoute(data.id, targetRouteId);
+        } else if (data.type === 'stop') {
+            if (data.sourceRouteId === targetRouteId) {
+                // Reorder within same route
+                reorderStop(data.id, targetRouteId, getDropPosition(e));
+            } else {
+                // Move stop between routes
+                moveStopBetweenRoutes(data.id, data.sourceRouteId, targetRouteId);
+            }
+        }
+    }
+    
+    // Initialize drag and drop listeners
+    document.querySelectorAll('.draggable-item').forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+    });
+    
+    dropTargets.forEach(container => {
+        container.addEventListener('dragover', handleDragOver);
+        container.addEventListener('dragleave', handleDragLeave);
+        container.addEventListener('drop', handleDrop);
+    });
+    
+    // Handle route assignment changes
+    document.querySelectorAll('.sales-rep-select, .driver-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const routeId = this.dataset.routeId;
+            const assigneeType = this.classList.contains('sales-rep-select') ? 'sales_rep' : 'driver';
+            updateRouteAssignee(routeId, assigneeType, this.value);
+        });
+    });
+    
+    // Save changes button handler
+    document.getElementById('saveChanges').addEventListener('click', function() {
+        saveRouteChanges();
+    });
+    
+    // Optimize routes button handler
+    document.getElementById('optimizeRoutes').addEventListener('click', function() {
+        optimizeRoutes();
+    });
+    
+    // Balance loads button handler
+    document.getElementById('balanceLoads').addEventListener('click', function() {
+        balanceRouteLoads();
+    });
+});
+
+// Helper functions for route management
+function addCustomerToRoute(customerId, routeId) {
+    // Implementation will be added
+    console.log('Adding customer', customerId, 'to route', routeId);
+}
+
+function reorderStop(stopId, routeId, position) {
+    // Implementation will be added
+    console.log('Reordering stop', stopId, 'in route', routeId, 'to position', position);
+}
+
+function moveStopBetweenRoutes(stopId, sourceRouteId, targetRouteId) {
+    // Implementation will be added
+    console.log('Moving stop', stopId, 'from route', sourceRouteId, 'to route', targetRouteId);
+}
+
+function updateRouteAssignee(routeId, assigneeType, assigneeId) {
+    // Implementation will be added
+    console.log('Updating', assigneeType, 'for route', routeId, 'to', assigneeId);
+}
+
+function saveRouteChanges() {
+    // Implementation will be added
+    console.log('Saving route changes');
+}
+
+function optimizeRoutes() {
+    // Implementation will be added
+    console.log('Optimizing routes');
+}
+
+function balanceRouteLoads() {
+    // Implementation will be added
+    console.log('Balancing route loads');
+}
+</script>
+
+{% endblock %}

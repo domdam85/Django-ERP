@@ -1,0 +1,168 @@
+{% extends "warehouse/base.html" %}
+{% load static %}
+{% load warehouse_filters %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2>Pick Lists for {{ delivery_date|date }}</h2>
+            <form class="mt-2" method="get" id="dateForm">
+                <div class="input-group" style="max-width: 300px;">
+                    <input type="date" 
+                           class="form-control" 
+                           name="date" 
+                           value="{{ selected_date }}"
+                           onchange="this.form.submit()">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="bi bi-calendar3"></i> Show Date
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'warehouse:create-pick-list' %}" class="btn btn-success">
+                <i class="bi bi-plus-lg"></i> Create Pick List
+            </a>
+        </div>
+    </div>
+
+    <!-- Route Summary Cards -->
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+        {% for route_id, stats in route_stats.items %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ stats.route_name }}</h5>
+                    <div class="row text-center">
+                        <div class="col">
+                            <div class="h3 mb-0">{{ stats.total_orders }}</div>
+                            <div class="small text-muted">Orders</div>
+                        </div>
+                        <div class="col">
+                            <div class="h3 mb-0">{{ stats.total_items }}</div>
+                            <div class="small text-muted">Total Items</div>
+                        </div>
+                        <div class="col">
+                            <div class="h3 mb-0">{{ stats.completed_items }}</div>
+                            <div class="small text-muted">Picked</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pick Lists by Route -->
+    {% if pick_lists %}
+        {% regroup pick_lists by delivery_route as route_list %}
+        {% for route in route_list %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">{{ route.grouper.name }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Items</th>
+                                <th>Progress</th>
+                                <th>Assigned To</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pick_list in route.list %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-{% if pick_list.status == 'completed' %}success{% elif pick_list.status == 'in_progress' %}warning{% else %}secondary{% endif %}">
+                                            {{ pick_list.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ pick_list.items.count }} ({{ pick_list.items.all|sum_quantities }} units)</td>
+                                    <td style="min-width: 200px;">
+                                        {% with items=pick_list.items.all %}
+                                        {% with total_qty=items|sum_quantities %}
+                                        {% with picked_qty=items|sum_picked_quantities %}
+                                            <div class="progress mb-1" style="height: 20px">
+                                                <div class="progress-bar bg-success" 
+                                                     role="progressbar" 
+                                                     data-value="{{ picked_qty }}"
+                                                     data-total="{{ total_qty }}"
+                                                     title="{{ picked_qty }} units picked"></div>
+                                            </div>
+                                            <small class="text-muted">
+                                                {{ picked_qty }} of {{ total_qty }} units picked
+                                            </small>
+                                        {% endwith %}
+                                        {% endwith %}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% if pick_list.assigned_to %}
+                                            {{ pick_list.assigned_to.get_full_name }}
+                                        {% else %}
+                                            <span class="text-muted">Unassigned</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'warehouse:pick-list-detail' pick_list.pk %}" 
+                                               class="btn btn-sm btn-primary">
+                                                <i class="bi bi-eye"></i> View
+                                            </a>
+                                            {% if pick_list.status == 'pending' %}
+                                                <a href="{% url 'warehouse:start-picking' pick_list.pk %}" 
+                                                   class="btn btn-sm btn-success">
+                                                    <i class="bi bi-play"></i> Start
+                                                </a>
+                                            {% elif pick_list.status == 'in_progress' %}
+                                                <a href="{% url 'warehouse:complete-picking' pick_list.pk %}" 
+                                                   class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-check2"></i> Complete
+                                                </a>
+                                            {% elif pick_list.status == 'completed' %}
+                                                <a href="{% url 'warehouse:stage-order' pick_list.pk %}" 
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="bi bi-box-seam"></i> Stage
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center py-4">
+                <p class="mb-0">No pick lists found for {{ delivery_date|date }}.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set progress bar widths
+    document.querySelectorAll('.progress-bar').forEach(function(bar) {
+        const value = parseInt(bar.dataset.value || 0);
+        const total = parseInt(bar.dataset.total || 1);
+        const percentage = (value / total * 100) + '%';
+        bar.style.width = percentage;
+        bar.setAttribute('aria-valuenow', value);
+        bar.setAttribute('aria-valuemax', total);
+    });
+});
+</script>
+{% endblock %}

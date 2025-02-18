@@ -1,0 +1,102 @@
+{% extends 'management/base_content.html' %}
+{% load static %}
+
+{% block management_content %}
+<div class="row">
+    {% for team in teams %}
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ team.name }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <div class="text-center">
+                            <div class="display-4">{{ team.performance_score }}</div>
+                            <div class="text-muted">Performance Score</div>
+                        </div>
+                    </div>
+                    <div class="col-8">
+                        <div class="mb-3">
+                            <label class="form-label">Tasks Completed</label>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: {{ team.tasks_completed }}%" 
+                                     aria-valuenow="{{ team.tasks_completed }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ team.tasks_completed }}
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Goals Met</label>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ team.goals_met|cut:'%' }}%" 
+                                     aria-valuenow="{{ team.goals_met|cut:'%' }}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {{ team.goals_met }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Performance Metrics</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Performance Score', 'Tasks Completed', 'Goals Met'],
+            datasets: [
+                {% for team in teams %}
+                {
+                    label: '{{ team.name }}',
+                    data: [
+                        {{ team.performance_score }},
+                        {{ team.tasks_completed }},
+                        {{ team.goals_met|cut:'%' }}
+                    ],
+                    fill: true,
+                    backgroundColor: '{{ forloop.counter0|yesno:"rgba(54, 162, 235, 0.2),rgba(255, 99, 132, 0.2)" }}',
+                    borderColor: '{{ forloop.counter0|yesno:"rgb(54, 162, 235),rgb(255, 99, 132)" }}',
+                    pointBackgroundColor: '{{ forloop.counter0|yesno:"rgb(54, 162, 235),rgb(255, 99, 132)" }}',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '{{ forloop.counter0|yesno:"rgb(54, 162, 235),rgb(255, 99, 132)" }}'
+                },
+                {% endfor %}
+            ]
+        },
+        options: {
+            elements: {
+                line: {
+                    borderWidth: 3
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% load static %}
+
+<!-- Dashboard Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Dashboard</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'admin_tools:home' %}" class="left-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-chart-line"></i></span>
+                <span class="left-nav-text">Admin Dashboard</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Quick Actions Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Quick Actions</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'admin_tools:user_list' %}" class="left-nav-link {% if request.resolver_match.url_name == 'user_list' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-users"></i></span>
+                <span class="left-nav-text">User Management</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'admin_tools:system_settings' %}" class="left-nav-link {% if request.resolver_match.url_name == 'system_settings' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-cogs"></i></span>
+                <span class="left-nav-text">System Settings</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- QuickBooks Sync Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">QuickBooks Sync</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'admin_tools:quickbooks_settings' %}" class="left-nav-link {% if request.resolver_match.url_name == 'quickbooks_settings' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-cog"></i></span>
+                <span class="left-nav-text">Settings</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'admin_tools:quickbooks_sync_dashboard' %}" class="left-nav-link {% if request.resolver_match.url_name == 'quickbooks_sync_dashboard' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-exchange-alt"></i></span>
+                <span class="left-nav-text">Sync Dashboard</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'admin_tools:quickbooks_sync_history' %}" class="left-nav-link {% if request.resolver_match.url_name == 'quickbooks_sync_history' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-history"></i></span>
+                <span class="left-nav-text">Sync History</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- System Tools Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">System Tools</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'admin_tools:audit_logs' %}" class="left-nav-link {% if request.resolver_match.url_name == 'audit_logs' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-history"></i></span>
+                <span class="left-nav-text">Audit Logs</span>
+            </a>
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,35 @@
+{% extends 'warehouse/base_content.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Staging Areas</h2>
+        <a href="{% url 'warehouse:staging-create' %}" class="btn btn-primary">Create Staging Area</a>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for area in areas %}
+            <tr>
+                <td>{{ area.name }}</td>
+                <td>{{ area.description }}</td>
+                <td>
+                    <a href="{% url 'warehouse:staging-update' pk=area.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <a href="{% url 'warehouse:staging-delete' pk=area.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No staging areas created yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

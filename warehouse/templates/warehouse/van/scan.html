@@ -1,0 +1,200 @@
+{% extends 'warehouse/base.html' %}
+{% load static %}
+
+{% block title %}Van Loading Verification - ERP System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3">Van Loading Verification</h1>
+            <p class="text-muted">Scan products to verify loading for {{ order.picking_list.delivery_route.name }}</p>
+        </div>
+        <div class="col-auto">
+            <div class="btn-group">
+                <a href="{% url 'warehouse:van-loading' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanner Section -->
+    <div class="row mb-4">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-barcode fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="mb-3">Scan Products</h5>
+                    <div class="form-group">
+                        <input type="text" 
+                               id="scanInput" 
+                               class="form-control form-control-lg text-center"
+                               placeholder="Click here and scan product"
+                               autocomplete="off">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product List -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-boxes me-2"></i> Products to Load
+            </h5>
+            <span class="badge bg-primary" id="progress-badge">
+                <span id="scanned-count">0</span>/<span id="total-count">{{ order.picking_list.items.count }}</span> Verified
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Quantity</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.picking_list.items.all %}
+                        <tr id="product-row-{{ item.product.sku }}" data-sku="{{ item.product.sku }}">
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.product.sku }}</td>
+                            <td>{{ item.picked_quantity }}</td>
+                            <td class="text-center">
+                                <span class="status-badge badge bg-secondary">
+                                    <i class="fas fa-hourglass-start"></i> Pending
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            <form method="post" id="completeForm">
+                {% csrf_token %}
+                {% if order.status == 'staged' %}
+                    <input type="hidden" name="start_loading" value="true">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            Start loading session to begin scanning products
+                        </div>
+                        <button type="submit" 
+                                formaction="{% url 'warehouse:start-loading' order.pk %}"
+                                class="btn btn-success">
+                            <i class="fas fa-play"></i> Begin Loading Session
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            Scan all products to enable completion
+                        </div>
+                        <button type="submit" 
+                                formaction="{% url 'warehouse:complete-loading' order.pk %}"
+                                class="btn btn-success" 
+                                id="completeButton" 
+                                disabled>
+                            <i class="fas fa-check"></i> Complete Loading
+                        </button>
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="scanSuccessModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h5 class="modal-title">Product Verified</h5>
+                <p class="text-muted mb-0" id="successProductName"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="scanErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
+                <h5 class="modal-title">Invalid Product</h5>
+                <p class="text-muted mb-0">This product is not on the loading list.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const scanInput = document.getElementById('scanInput');
+    const completeButton = document.getElementById('completeButton');
+    const successModal = new bootstrap.Modal(document.getElementById('scanSuccessModal'));
+    const errorModal = new bootstrap.Modal(document.getElementById('scanErrorModal'));
+    const totalProducts = parseInt(document.getElementById('total-count').textContent);
+    let scannedProducts = new Set();
+
+    // Focus scan input on page load
+    scanInput.focus();
+    
+    // Keep focus on scan input
+    document.addEventListener('click', function() {
+        scanInput.focus();
+    });
+
+    scanInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const sku = this.value.trim();
+            const row = document.querySelector(`tr[data-sku="${sku}"]`);
+            
+            if (row && !scannedProducts.has(sku)) {
+                // Update row status
+                const badge = row.querySelector('.status-badge');
+                badge.classList.remove('bg-secondary');
+                badge.classList.add('bg-success');
+                badge.innerHTML = '<i class="fas fa-check"></i> Verified';
+                
+                // Update progress
+                scannedProducts.add(sku);
+                document.getElementById('scanned-count').textContent = scannedProducts.size;
+                
+                // Show success message
+                document.getElementById('successProductName').textContent = 
+                    row.querySelector('td:first-child').textContent;
+                successModal.show();
+                setTimeout(() => successModal.hide(), 1000);
+                
+                // Enable complete button if all products scanned
+                if (scannedProducts.size === totalProducts) {
+                    completeButton.disabled = false;
+                }
+            } else if (!row) {
+                errorModal.show();
+                setTimeout(() => errorModal.hide(), 1500);
+            }
+            
+            // Clear input
+            this.value = '';
+        }
+    });
+});
+</script>
+{% endblock %}

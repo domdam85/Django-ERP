@@ -1,0 +1,87 @@
+{% load static %}
+
+<!-- Overview Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Overview</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'overview:home' %}" class="left-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-chart-line"></i></span>
+                <span class="left-nav-text">Business Overview</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Section Dashboards -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Section Dashboards</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'sales:home' %}" class="left-nav-link">
+                <span class="left-nav-icon"><i class="fas fa-dollar-sign"></i></span>
+                <span class="left-nav-text">Sales Dashboard</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'delivery:home' %}" class="left-nav-link">
+                <span class="left-nav-icon"><i class="fas fa-truck"></i></span>
+                <span class="left-nav-text">Delivery Dashboard</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:home' %}" class="left-nav-link">
+                <span class="left-nav-icon"><i class="fas fa-warehouse"></i></span>
+                <span class="left-nav-text">Warehouse Dashboard</span>
+            </a>
+        </li>
+        {% if user.is_staff %}
+        <li class="left-nav-item">
+            <a href="{% url 'management:home' %}" class="left-nav-link">
+                <span class="left-nav-icon"><i class="fas fa-chart-bar"></i></span>
+                <span class="left-nav-text">Management Dashboard</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</div>
+
+<!-- Quick Actions -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Quick Actions</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <!-- Quick action buttons disabled until customer selection is implemented -->
+            <!-- <a href="#" class="left-nav-link">
+                <span class="left-nav-icon"><i class="fas fa-plus"></i></span>
+                <span class="left-nav-text">New Order</span>
+            </a> -->
+        </li>
+        <li class="left-nav-item">
+            <!-- Quick action buttons disabled until inventory management is implemented -->
+            <!-- <a href="#" class="left-nav-link">
+                <span class="left-nav-icon"><i class="fas fa-box-open"></i></span>
+                <span class="left-nav-text">Add Inventory</span>
+            </a> -->
+        </li>
+    </ul>
+</div>
+
+<!-- User Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">User</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'overview:profile' %}" class="left-nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-user"></i></span>
+                <span class="left-nav-text">Profile</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'overview:settings' %}" class="left-nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-cog"></i></span>
+                <span class="left-nav-text">Settings</span>
+            </a>
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,269 @@
+{% extends 'management/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Route Optimization</h1>
+    
+    <!-- Optimization Controls -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="optimizationTarget">Optimization Target</label>
+                                <select class="form-select" id="optimizationTarget">
+                                    <option value="distance">Minimize Distance</option>
+                                    <option value="time">Minimize Time</option>
+                                    <option value="balanced">Balance Workload</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="daySelect">Select Day</label>
+                                <select class="form-select" id="daySelect">
+                                    {% for day in days_of_week %}
+                                    <option value="{{ day|lower }}">{{ day }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button class="btn btn-primary w-100" id="runOptimization">
+                                    Run Optimization
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Routes Overview -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h4 class="mb-2">Total Routes</h4>
+                    <h2 class="mb-0">{{ routes|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h4 class="mb-2">Average Stops</h4>
+                    <h2 class="mb-0">{{ routes|avg_stops }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <h4 class="mb-2">Avg Delivery Time</h4>
+                    <h2 class="mb-0">{{ routes|avg_delivery_time }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h4 class="mb-2">Load Balance</h4>
+                    <h2 class="mb-0">{{ routes|load_balance_score }}%</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route Analysis -->
+    <div class="row">
+        <!-- Route Performance Chart -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-1"></i>
+                    Route Performance Analysis
+                </div>
+                <div class="card-body">
+                    <canvas id="routePerformanceChart" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Route Metrics -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-list me-1"></i>
+                    Route Metrics
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Route</th>
+                                    <th>Stops</th>
+                                    <th>Avg Time</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for route in routes %}
+                                <tr>
+                                    <td>{{ route.name }}</td>
+                                    <td>{{ route_metrics|get_item:route.id|get_item:'total_stops' }}</td>
+                                    <td>{{ route_metrics|get_item:route.id|get_item:'avg_delivery_time'|default:'N/A' }}</td>
+                                    <td>
+                                        {% with score=route_metrics|get_item:route.id|get_item:'performance_score' %}
+                                        {% if score %}
+                                        <span class="badge {% if score >= 90 %}bg-success{% elif score >= 70 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ score }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">N/A</span>
+                                        {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optimization Suggestions -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-lightbulb me-1"></i>
+            Optimization Suggestions
+        </div>
+        <div class="card-body">
+            <div class="list-group">
+                {% for route in routes %}
+                {% if route_metrics|get_item:route.id|get_item:'performance_score' < 80 %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ route.name }} Optimization</h5>
+                        <small>Score: {{ route_metrics|get_item:route.id|get_item:'performance_score' }}</small>
+                    </div>
+                    <p class="mb-1">
+                        Suggested improvements for route efficiency:
+                    </p>
+                    <ul class="list-unstyled mb-0">
+                        {% if route_metrics|get_item:route.id|get_item:'total_stops' > 15 %}
+                        <li>• Consider splitting into two routes due to high stop count</li>
+                        {% endif %}
+                        {% if route_metrics|get_item:route.id|get_item:'avg_delivery_time' > 30 %}
+                        <li>• High average delivery time - review stop sequence</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize route performance chart
+    const ctx = document.getElementById('routePerformanceChart');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: JSON.parse('{{ route_names_json|escapejs }}'),
+            datasets: [{
+                label: 'Performance Score',
+                data: JSON.parse('{{ route_scores_json|escapejs }}'),
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Route Performance Trends'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
+    // Handle optimization button click
+    document.getElementById('runOptimization').addEventListener('click', function() {
+        const target = document.getElementById('optimizationTarget').value;
+        const day = document.getElementById('daySelect').value;
+        
+        // Show loading state
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Optimizing...';
+        
+        // Call optimization endpoint
+        fetch(`/management/api/optimize-routes/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                target: target,
+                day: day
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Handle optimization results
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Optimization failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred during optimization');
+        })
+        .finally(() => {
+            // Reset button state
+            this.disabled = false;
+            this.innerHTML = 'Run Optimization';
+        });
+    });
+});
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

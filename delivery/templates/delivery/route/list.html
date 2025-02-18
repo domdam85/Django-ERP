@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Routes - Delivery Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3">My Routes</h1>
+            <p class="text-muted">View and manage your assigned delivery routes</p>
+        </div>
+    </div>
+
+    <div class="row">
+        {% if routes %}
+            {% for route in routes %}
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Route #{{ route.id }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">{{ route.day }} - {{ route.start_time|time:"g:i A" }}</h6>
+                            
+                            <div class="mt-3">
+                                <p class="mb-1"><strong>Stops:</strong> {{ route.customerstop_set.count }}</p>
+                                <p class="mb-1"><strong>Area:</strong> {{ route.area }}</p>
+                                <p class="mb-0"><strong>Status:</strong> 
+                                    <span class="badge {% if route.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if route.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </p>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <a href="{% url 'delivery:route-overview' %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col">
+                <div class="alert alert-info">
+                    No routes assigned for today.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

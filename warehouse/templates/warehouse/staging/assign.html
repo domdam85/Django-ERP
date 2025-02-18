@@ -1,0 +1,23 @@
+{% extends "warehouse/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Stage Order</h2>
+            <p class="mb-0">Assign staging area for Pick List: {{ pick_list.id }}</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">Stage Order</button>
+                <a href="{% url 'warehouse:picking-list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

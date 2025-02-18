@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Warehouse{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">{{ page_title }}</h1>
+                <div>
+                    <a href="{% url 'warehouse:po-list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Purchase Orders
+                    </a>
+                    {% if po.status == 'draft' or po.status == 'pending' %}
+                    <a href="{% url 'warehouse:po-update' po.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    {% endif %}
+                    {% if po.status == 'pending' %}
+                    <a href="{% url 'warehouse:po-receive' po.pk %}" class="btn btn-success">
+                        <i class="fas fa-truck"></i> Receive Items
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'warehouse:po-print' po.pk %}" class="btn btn-info" target="_blank">
+                        <i class="fas fa-print"></i> Print
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Purchase Order Info -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Purchase Order Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">PO Number</dt>
+                                <dd class="col-sm-8">{{ po.reference }}</dd>
+
+                                <dt class="col-sm-4">Status</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge {% if po.status == 'draft' %}bg-secondary
+                                                 {% elif po.status == 'pending' %}bg-warning
+                                                 {% elif po.status == 'partially_received' %}bg-info
+                                                 {% elif po.status == 'received' %}bg-success
+                                                 {% elif po.status == 'cancelled' %}bg-danger{% endif %}">
+                                        {{ po.get_status_display }}
+                                    </span>
+                                </dd>
+
+                                <dt class="col-sm-4">Created By</dt>
+                                <dd class="col-sm-8">{{ po.created_by }}</dd>
+
+                                <dt class="col-sm-4">Created At</dt>
+                                <dd class="col-sm-8">{{ po.created_at|date:"M d, Y H:i" }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Supplier</dt>
+                                <dd class="col-sm-8">{{ po.supplier.name }}</dd>
+
+                                <dt class="col-sm-4">Expected</dt>
+                                <dd class="col-sm-8">{{ po.expected_delivery|date:"M d, Y" }}</dd>
+
+                                <dt class="col-sm-4">Last Updated</dt>
+                                <dd class="col-sm-8">{{ po.updated_at|date:"M d, Y H:i" }}</dd>
+
+                                <dt class="col-sm-4">Notes</dt>
+                                <dd class="col-sm-8">{{ po.notes|linebreaks|default:"No notes" }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Order Items</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>SKU</th>
+                                    <th class="text-end">Quantity</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Total</th>
+                                    <th class="text-center">Received</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in po.items.all %}
+                                <tr>
+                                    <td>{{ item.product.name }}</td>
+                                    <td>{{ item.product.sku }}</td>
+                                    <td class="text-end">{{ item.quantity }}</td>
+                                    <td class="text-end">${{ item.unit_price|floatformat:2 }}</td>
+                                    <td class="text-end">${{ item.total|floatformat:2 }}</td>
+                                    <td class="text-center">
+                                        <span class="badge {% if item.received_quantity == 0 %}bg-danger
+                                                     {% elif item.received_quantity < item.quantity %}bg-warning
+                                                     {% else %}bg-success{% endif %}">
+                                            {{ item.received_quantity }}/{{ item.quantity }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4" class="text-end"><strong>Total Amount:</strong></td>
+                                    <td class="text-end"><strong>${{ po.total_amount|floatformat:2 }}</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Receipts -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Receipts</h5>
+                </div>
+                <div class="card-body">
+                    {% if po.receipts.exists %}
+                        <div class="list-group">
+                            {% for receipt in po.receipts.all %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Receipt #{{ receipt.id }}</h6>
+                                    <small>{{ receipt.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="mb-1">Received by: {{ receipt.received_by }}</p>
+                                <small>{{ receipt.notes|default:"No notes" }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">No receipts recorded yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Activity Log</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for log in po.activity_logs.all %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">{{ log.action }}</h6>
+                                <p class="mb-0 text-muted">
+                                    <small>{{ log.created_at|date:"M d, Y H:i" }} by {{ log.user }}</small>
+                                </p>
+                                {% if log.notes %}
+                                <p class="mb-0"><small>{{ log.notes }}</small></p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted mb-0">No activity recorded yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

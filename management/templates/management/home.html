@@ -1,0 +1,315 @@
+{% extends 'management/base.html' %}
+{% load static %}
+{% load management_filters %}
+
+{% block title %}Management Dashboard - ERP System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- ... (previous content unchanged until key metrics section) ... -->
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Revenue Chart -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Revenue Trends</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-secondary btn-time-range active" data-range="week">Week</button>
+                        <button class="btn btn-sm btn-outline-secondary btn-time-range" data-range="month">Month</button>
+                        <button class="btn btn-sm btn-outline-secondary btn-time-range" data-range="quarter">Quarter</button>
+                    </div>
+                </div>
+                <div class="card-body chart-container">
+                    <canvas id="revenueChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Key Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4 metric-progress" id="fulfillmentRate">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>Order Fulfillment Rate</span>
+                            <span class="text-primary progress-label">{{ fulfillment_rate|default:"0" }}%</span>
+                        </label>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ fulfillment_rate|default:'0' }}%"></div>
+                        </div>
+                    </div>
+                    {# Removed delivery rate metric since delivery functionality is removed for now #}
+                    <div class="mb-4 metric-progress" id="satisfactionRate">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>Customer Satisfaction</span>
+                            <span class="text-primary progress-label">{{ satisfaction_rate|default:"0" }}%</span>
+                        </label>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ satisfaction_rate|default:'0' }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-4 metric-progress" id="inventoryAccuracy">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>Inventory Accuracy</span>
+                            <span class="text-primary progress-label">{{ inventory_accuracy|default:"0" }}%</span>
+                        </label>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ inventory_accuracy|default:'0' }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Reports -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Reports</h5>
+                    <a href="{% url 'management:reports' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_reports %}
+                    <div class="list-group list-group-flush borderless-list">
+                        {% for report in recent_reports %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ report.title }}</h6>
+                                <small class="text-muted">{{ report.created_at|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1">{{ report.description }}</p>
+                            <small>
+                                <a href="#" class="text-primary">
+                                    <i class="fas fa-download"></i> Download Report
+                                </a>
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center my-3">No recent reports</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Performance -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Team Performance</h5>
+                </div>
+                <div class="card-body">
+                    {% if team_performance %}
+                    <div class="table-responsive">
+                        <table class="table table-hover team-performance-table">
+                            <thead>
+                                <tr>
+                                    <th>Team</th>
+                                    <th>Tasks</th>
+                                    <th>Completion</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for team in team_performance %}
+                                <tr>
+                                    <td>{{ team.name }}</td>
+                                    <td>{{ team.tasks_completed }}/{{ team.total_tasks }}</td>
+                                    <td>
+                                        <div class="progress compact-progress">
+                                            <div class="progress-bar" role="progressbar" style="width: {{ team.completion_rate }}%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge status-badge bg-{{ team.performance_color }}">
+                                            {{ team.performance_rating }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center my-3">No team performance data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Metric Detail Modal -->
+<div class="modal fade" id="metricDetailModal" tabindex="-1" aria-labelledby="metricDetailModalLabel" aria-hidden="true">
+                        </label>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ inventory_accuracy|default:'0' }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {# </div> #}
+    {# </div> #}
+
+    <div class="row">
+        <!-- Recent Reports -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Reports</h5>
+                    <a href="{% url 'management:reports' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_reports %}
+                    <div class="list-group list-group-flush borderless-list">
+                        {% for report in recent_reports %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ report.title }}</h6>
+                                <small class="text-muted">{{ report.created_at|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1">{{ report.description }}</p>
+                            <small>
+                                <a href="#" class="text-primary">
+                                    <i class="fas fa-download"></i> Download Report
+                                </a>
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center my-3">No recent reports</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Performance -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Team Performance</h5>
+                </div>
+                <div class="card-body">
+                    {% if team_performance %}
+                    <div class="table-responsive">
+                        <table class="table table-hover team-performance-table">
+                            <thead>
+                                <tr>
+                                    <th>Team</th>
+                                    <th>Tasks</th>
+                                    <th>Completion</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for team in team_performance %}
+                                <tr>
+                                    <td>{{ team.name }}</td>
+                                    <td>{{ team.tasks_completed }}/{{ team.total_tasks }}</td>
+                                    <td>
+                                        <div class="progress compact-progress">
+                                            <div class="progress-bar" role="progressbar" style="width: {{ team.completion_rate }}%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge status-badge bg-{{ team.performance_color }}">
+                                            {{ team.performance_rating }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center my-3">No team performance data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Metric Detail Modal -->
+<div class="modal fade" id="metricDetailModal" tabindex="-1" aria-labelledby="metricDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="metricDetailModalLabel">Metric Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- будет загружаться детализированная информация о метрике -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/management-dashboard.js' %}"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize revenue chart with data from server
+            const chartData = {{ revenue_chart_data|safe }};
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '$' + context.raw.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Auto-refresh dashboard data
+            const REFRESH_INTERVAL = 300000; // 5 minutes
+            setInterval(function() {
+                location.reload();
+            }, REFRESH_INTERVAL);
+        });
+    </script>
+{% endblock %}

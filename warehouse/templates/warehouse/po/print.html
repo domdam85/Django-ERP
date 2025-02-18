@@ -1,0 +1,138 @@
+{% extends 'base_print.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Warehouse{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-5">
+        <div class="col-6">
+            <h1>PURCHASE ORDER</h1>
+            <h4 class="text-muted">{{ po.reference }}</h4>
+        </div>
+        <div class="col-6 text-end">
+            <img src="{% static 'img/logo.png' %}" alt="Company Logo" height="60">
+            <p class="mt-2 mb-0">Your Company Name</p>
+            <p class="mb-0">123 Business Street</p>
+            <p class="mb-0">City, State ZIP</p>
+            <p>Phone: (555) 555-5555</p>
+        </div>
+    </div>
+
+    <!-- Supplier & PO Info -->
+    <div class="row mb-5">
+        <div class="col-6">
+            <h5>Supplier</h5>
+            <p class="mb-0"><strong>{{ po.supplier.name }}</strong></p>
+            <p class="mb-0">{{ po.supplier.address }}</p>
+            <p class="mb-0">{{ po.supplier.city }}, {{ po.supplier.state }} {{ po.supplier.zip_code }}</p>
+            <p class="mb-0">Phone: {{ po.supplier.phone }}</p>
+            <p>Email: {{ po.supplier.email }}</p>
+        </div>
+        <div class="col-6">
+            <table class="table table-sm">
+                <tbody>
+                    <tr>
+                        <th>PO Date:</th>
+                        <td>{{ po.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Expected Delivery:</th>
+                        <td>{{ po.expected_delivery|date:"M d, Y" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Payment Terms:</th>
+                        <td>{{ po.supplier.payment_terms|default:"Net 30" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>{{ po.get_status_display }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>SKU</th>
+                        <th class="text-end">Quantity</th>
+                        <th class="text-end">Unit Price</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in po.items.all %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.product.sku }}</td>
+                        <td class="text-end">{{ item.quantity }}</td>
+                        <td class="text-end">${{ item.unit_price|floatformat:2 }}</td>
+                        <td class="text-end">${{ item.total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
+                        <td class="text-end">${{ po.subtotal|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-end"><strong>Tax ({{ po.tax_rate|floatformat:1 }}%):</strong></td>
+                        <td class="text-end">${{ po.tax_amount|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                        <td class="text-end"><strong>${{ po.total_amount|floatformat:2 }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Notes & Signatures -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h5>Notes</h5>
+            <p>{{ po.notes|linebreaks|default:"No notes" }}</p>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-6">
+            <div class="border-top pt-2">
+                <p class="mb-0">Authorized by</p>
+                <p class="mb-0">{{ po.created_by.get_full_name }}</p>
+                <p>{{ po.created_at|date:"M d, Y" }}</p>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="border-top pt-2">
+                <p class="mb-0">Received by</p>
+                <p class="mb-0">_____________________</p>
+                <p>Date: _________________</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        body {
+            font-size: 12pt;
+        }
+        .container {
+            width: 100%;
+            max-width: none;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Sales{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3">{{ page_title }}</h1>
+            <p class="text-muted">Order details and items</p>
+        </div>
+        <div class="col-auto">
+            {% if order.status == 'pending' %}
+            <a href="{% url 'sales:order-edit' order.pk %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit Order
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Order Details -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Order Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge {% if order.status == 'pending' %}bg-warning
+                                         {% elif order.status == 'processing' %}bg-info
+                                         {% elif order.status == 'completed' %}bg-success
+                                         {% else %}bg-secondary{% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-4">Created</dt>
+                        <dd class="col-sm-8">{{ order.created_at|date:"M d, Y H:i" }}</dd>
+
+                        <dt class="col-sm-4">Department</dt>
+                        <dd class="col-sm-8">{{ order.department }}</dd>
+
+                        <dt class="col-sm-4">PO Number</dt>
+                        <dd class="col-sm-8">{{ order.po_number|default:"N/A" }}</dd>
+
+                        <dt class="col-sm-4">Approver</dt>
+                        <dd class="col-sm-8">{{ order.approver_name|default:"N/A" }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Details -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Name</dt>
+                        <dd class="col-sm-8">
+                            <a href="{% url 'sales:customer-detail' order.customer.pk %}" class="text-decoration-none">
+                                {{ order.customer.name }}
+                            </a>
+                        </dd>
+
+                        <dt class="col-sm-4">Contact</dt>
+                        <dd class="col-sm-8">{{ order.customer.contact_name }}</dd>
+
+                        <dt class="col-sm-4">Phone</dt>
+                        <dd class="col-sm-8">{{ order.customer.phone }}</dd>
+
+                        <dt class="col-sm-4">Email</dt>
+                        <dd class="col-sm-8">{{ order.customer.email }}</dd>
+
+                        <dt class="col-sm-4">Address</dt>
+                        <dd class="col-sm-8">{{ order.customer.address }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Order Notes</h5>
+                </div>
+                <div class="card-body">
+                    {{ order.notes|default:"No notes available"|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Order Items</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>SKU</th>
+                            <th>Quantity</th>
+                            <th>Unit</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.orderitem_set.all %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.product.sku }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.product.unit }}</td>
+                            <td>{{ item.notes|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No items in this order.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

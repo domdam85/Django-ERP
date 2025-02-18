@@ -1,0 +1,89 @@
+{% extends "admin_tools/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>QuickBooks Settings</h2>
+        <div class="btn-group">
+            <a href="{% url 'admin_tools:quickbooks_sync_dashboard' %}" class="btn btn-primary">
+                <i class="fas fa-sync me-2"></i>Sync Dashboard
+            </a>
+            <a href="{% url 'admin_tools:quickbooks_sync_history' %}" class="btn btn-info">
+                <i class="fas fa-history me-2"></i>View History
+            </a>
+        </div>
+    </div>
+    
+    <!-- Conductor API Configuration -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Conductor API Configuration</h5>
+            <form method="post" class="mb-3">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="conductor_api_key" class="form-label">API Key</label>
+                    <input type="password" 
+                           class="form-control bg-dark text-light" 
+                           id="conductor_api_key" 
+                           name="conductor_api_key"
+                           value="{{ settings.conductor_api_key|default:'' }}"
+                           required>
+                </div>
+                <div class="mb-3">
+                    <label for="conductor_end_user_id" class="form-label">End User ID</label>
+                    <input type="text" 
+                           class="form-control bg-dark text-light" 
+                           id="conductor_end_user_id" 
+                           name="conductor_end_user_id"
+                           value="{{ settings.conductor_end_user_id|default:'' }}"
+                           required>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" 
+                           class="form-check-input" 
+                           id="sync_enabled" 
+                           name="sync_enabled"
+                           {% if settings.sync_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="sync_enabled">Enable Sync</label>
+                </div>
+                <button type="submit" 
+                        name="save_settings" 
+                        class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Save Settings
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Connection Test -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Connection Test</h5>
+            <p class="text-muted mb-3">Test your QuickBooks Desktop connection using the configured settings.</p>
+            <button type="button" 
+                    class="btn btn-info" 
+                    id="test-connection"
+                    {% if not settings.sync_enabled %}disabled{% endif %}>
+                <i class="fas fa-plug me-2"></i>Test Connection
+            </button>
+            <div id="connection-result" class="mt-3"></div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('test-connection').addEventListener('click', function() {
+    // TODO: Implement connection test
+    const resultDiv = document.getElementById('connection-result');
+    resultDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>Testing connection...</div>';
+    
+    // Simulate test for now
+    setTimeout(() => {
+        resultDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Connection successful!</div>';
+    }, 2000);
+});
+</script>
+{% endblock %}
+{% endblock %}

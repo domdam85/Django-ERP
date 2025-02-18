@@ -1,0 +1,93 @@
+{% extends "delivery/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Today's Deliveries</h2>
+            {% if route %}
+                {% if van_loading and van_loading.status != 'completed' %}
+                    <a href="{% url 'delivery:van-loading' van_loading.pk %}" class="btn btn-warning float-end">
+                        <i class="bi bi-truck"></i> Complete Van Loading
+                    </a>
+                {% else %}
+                    <button id="beginRoute" class="btn btn-primary float-end" {% if not van_loading.status == 'completed' %}disabled{% endif %}>
+                        Begin Route
+                    </button>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    {% if route %}
+        <div class="card">
+            <div class="card-body">
+                <div class="route-list">
+                    {% for stop in stops %}
+                        <div class="card mb-3 route-stop">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <div class="h4 mb-0">
+                                            {% if stop.customer.orders.delivery.status == 'delivered' %}
+                                                <i class="bi bi-check-circle-fill text-success"></i>
+                                            {% elif stop.customer.orders.delivery.status == 'failed' %}
+                                                <i class="bi bi-x-circle-fill text-danger"></i>
+                                            {% elif stop.customer.orders.delivery.status == 'in_transit' %}
+                                                <i class="bi bi-truck text-primary"></i>
+                                            {% else %}
+                                                <i class="bi bi-circle text-secondary"></i>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <h5 class="mb-1">{{ stop.customer.name }}</h5>
+                                        <p class="mb-1">{{ stop.customer.address }}</p>
+                                        <small>Contact: {{ stop.customer.contact_person }} - {{ stop.customer.phone }}</small>
+                                        
+                                        {% with deliveries=stop.customer.orders.all %}
+                                            {% if deliveries %}
+                                                <div class="mt-2">
+                                                    {% for delivery in deliveries %}
+                                                        <span class="badge bg-info">Order #{{ delivery.order.order_number }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div class="col-auto">
+                                        <span class="badge bg-secondary">Stop #{{ stop.sequence }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="alert alert-info">No deliveries scheduled for today.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">No route assigned for today.</div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const beginRouteBtn = document.getElementById('beginRoute');
+    if (beginRouteBtn) {
+        beginRouteBtn.addEventListener('click', function() {
+            const firstStop = document.querySelector('.route-stop');
+            if (firstStop) {
+                const stopId = firstStop.dataset.stopId;
+                window.location.href = `{% url 'delivery:next-stop' 0 %}`.replace('0', stopId);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% endblock %}

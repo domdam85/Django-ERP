@@ -1,0 +1,348 @@
+{% extends "admin_tools/base.html" %}
+{% load static %}
+{% load django_tables2 %}
+
+{% block extra_css %}
+<link href="{% static 'css/sync-table.css' %}" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+<style>
+    /* Button colors */
+    .btn-sync {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+    }
+    .btn-sync:hover {
+        background-color: #bb2d3b;
+        border-color: #b02a37;
+        color: white;
+    }
+    .btn-sync:disabled {
+        background-color: var(--bs-secondary);
+        border-color: var(--bs-secondary);
+        color: white;
+    }
+    .btn-cancel {
+        background-color: var(--bs-secondary);
+        border-color: var(--bs-secondary);
+        color: white;
+    }
+    .btn-cancel:not(:disabled) {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    .btn-cancel:not(:disabled):hover {
+        background-color: #bb2d3b;
+        border-color: #b02a37;
+    }
+    
+    /* Progress bar colors */
+    .progress {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    .progress-bar {
+        transition: width 0.5s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HTMX Library -->
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Sync Dashboard</h2>
+        <div class="btn-group">
+            <a href="{% url 'admin_tools:quickbooks_settings' %}" class="btn btn-primary">
+                <i class="fas fa-cog me-2"></i>Settings
+            </a>
+            <a href="{% url 'admin_tools:quickbooks_sync_history' %}" class="btn btn-info">
+                <i class="fas fa-history me-2"></i>View History
+            </a>
+        </div>
+    </div>
+    
+    <!-- Sync Controls -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">QuickBooks Objects</h5>
+            <form method="post" class="mb-3" id="sync-form">
+                {% csrf_token %}
+                <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-4">
+                    <!-- Customers -->
+                    <div class="col">
+                        <div class="card h-100 {% if not customer_sync_enabled %}bg-light{% endif %}">
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="sync_objects" value="customers" 
+                                           id="sync_customers" 
+                                           {% if customer_sync_enabled %}checked{% else %}disabled{% endif %}>
+                                    <label class="form-check-label" for="sync_customers">
+                                        <i class="fas fa-users me-2"></i>Customers
+                                    </label>
+                                </div>
+                                <div class="mt-2 small">
+                                    <div>Total: {{ customer_stats.total|default:"0" }}</div>
+                                    <div>Synced: {{ customer_stats.synced|default:"0" }}</div>
+                                    <div>Pending: {{ customer_stats.pending|default:"0" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Items (Disabled) -->
+                    <div class="col">
+                        <div class="card h-100 bg-light">
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="sync_objects" value="items" 
+                                           id="sync_items" disabled>
+                                    <label class="form-check-label" for="sync_items">
+                                        <i class="fas fa-box me-2"></i>Items
+                                    </label>
+                                </div>
+                                <div class="mt-2 small text-muted">
+                                    <em>Coming soon</em>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Vendors (Disabled) -->
+                    <div class="col">
+                        <div class="card h-100 bg-light">
+                            <div class="card-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="sync_objects" value="vendors" 
+                                           id="sync_vendors" disabled>
+                                    <label class="form-check-label" for="sync_vendors">
+                                        <i class="fas fa-building me-2"></i>Vendors
+                                    </label>
+                                </div>
+                                <div class="mt-2 small text-muted">
+                                    <em>Coming soon</em>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-sync" 
+                            name="action" value="start_sync"
+                            id="start-sync-btn"
+                            {% if current_session and current_session.status == 'running' %}disabled{% endif %}>
+                        <i class="fas fa-sync me-2"></i>Start Synchronization
+                    </button>
+                    
+                    <button type="button" class="btn btn-cancel" 
+                            id="cancel-sync-btn"
+                            onclick="cancelSync()"
+                            {% if not current_session or current_session.status != 'running' %}disabled{% endif %}>
+                        <i class="fas fa-stop me-2"></i>Cancel Sync
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Progress Updates -->
+    <div id="sync-progress-container">
+        {% include "admin_tools/quickbooks/sync_progress.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let pollInterval;
+let syncStartPending = false;
+
+function manuallyPollProgress() {
+    const progressContainer = document.getElementById('sync-progress-container');
+    fetch('{% url "admin_tools:quickbooks_sync_progress" %}')
+        .then(response => response.text())
+        .then(html => {
+            progressContainer.innerHTML = html;
+            progressContainer.dispatchEvent(new CustomEvent('htmx:afterSwap', {
+                detail: { elt: progressContainer }
+            }));
+        });
+}
+
+function startPolling() {
+    if (!pollInterval) {
+        manuallyPollProgress();
+        pollInterval = setInterval(manuallyPollProgress, 1000);
+    }
+}
+
+function stopPolling() {
+    if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+    }
+}
+
+function cancelSync() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('{% url "admin_tools:quickbooks_sync_dashboard" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        },
+        body: 'action=cancel_sync'
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        }
+        throw new Error('Network response was not ok');
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            updateButtonStates(false);
+            manuallyPollProgress();
+        } else {
+            showToast(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Failed to cancel sync', 'error');
+    });
+}
+
+function updateButtonStates(isRunning) {
+    document.getElementById('start-sync-btn').disabled = isRunning;
+    document.getElementById('cancel-sync-btn').disabled = !isRunning;
+}
+
+function showToast(message, type = 'info') {
+    const colors = {
+        'success': '#28a745',
+        'error': '#dc3545',
+        'info': '#17a2b8',
+        'warning': '#ffc107'
+    };
+    
+    Toastify({
+        text: message,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: colors[type],
+        stopOnFocus: true
+    }).showToast();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const progressContainer = document.getElementById('sync-progress-container');
+    const syncForm = document.getElementById('sync-form');
+    
+    // Handle form submission
+    syncForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (syncStartPending) {
+            return;
+        }
+        
+        syncStartPending = true;
+        updateButtonStates(true);
+        
+        const formData = new FormData(syncForm);
+        formData.append('action', 'start_sync');
+        
+        const data = new URLSearchParams(formData);
+        
+        fetch('{% url "admin_tools:quickbooks_sync_dashboard" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            },
+            body: data.toString()
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Network response was not ok');
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                startPolling();
+                // Wait for first progress update before showing success message
+                const checkProgress = setInterval(() => {
+                    const content = progressContainer.innerHTML;
+                    if (content.includes('badge bg-primary">Running</span>')) {
+                        showToast('Sync started successfully', 'success');
+                        clearInterval(checkProgress);
+                    }
+                }, 100);
+                
+                // Timeout after 5 seconds
+                setTimeout(() => {
+                    clearInterval(checkProgress);
+                    if (syncStartPending) {
+                        syncStartPending = false;
+                        updateButtonStates(false);
+                        showToast('Failed to start sync - timeout', 'error');
+                    }
+                }, 5000);
+            } else {
+                syncStartPending = false;
+                updateButtonStates(false);
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            syncStartPending = false;
+            updateButtonStates(false);
+            showToast('Failed to start sync', 'error');
+        });
+    });
+    
+    // Monitor progress updates
+    progressContainer.addEventListener('htmx:afterSwap', function(evt) {
+        const content = evt.detail.elt.innerHTML;
+        
+        if (content.includes('badge bg-primary">Running</span>')) {
+            syncStartPending = false;
+            updateButtonStates(true);
+            startPolling();
+        } else if (content.includes('badge bg-success">Completed</span>')) {
+            syncStartPending = false;
+            updateButtonStates(false);
+            stopPolling();
+            showToast('Sync completed successfully', 'success');
+        } else if (content.includes('badge bg-danger">Failed</span>')) {
+            syncStartPending = false;
+            updateButtonStates(false);
+            stopPolling();
+            showToast('Sync failed', 'error');
+        } else if (content.includes('badge bg-warning">Cancelled</span>')) {
+            syncStartPending = false;
+            updateButtonStates(false);
+            stopPolling();
+            showToast('Sync cancelled', 'warning');
+        }
+    });
+    
+    // Start polling if sync is running
+    if (progressContainer.innerHTML.includes('badge bg-primary">Running</span>')) {
+        updateButtonStates(true);
+        startPolling();
+    }
+});
+</script>
+{% endblock %}

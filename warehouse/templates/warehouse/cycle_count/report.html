@@ -1,0 +1,159 @@
+{% extends 'base_print.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Warehouse{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-5">
+        <div class="col-6">
+            <h1>CYCLE COUNT REPORT</h1>
+            <h4 class="text-muted">#{{ cycle_count.id }}</h4>
+        </div>
+        <div class="col-6 text-end">
+            <img src="{% static 'img/logo.png' %}" alt="Company Logo" height="60">
+            <p class="mt-2 mb-0">Your Company Name</p>
+            <p class="mb-0">123 Business Street</p>
+            <p class="mb-0">City, State ZIP</p>
+            <p>Phone: (555) 555-5555</p>
+        </div>
+    </div>
+
+    <!-- Cycle Count Info -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <table class="table table-sm">
+                <tbody>
+                    <tr>
+                        <th style="width: 200px;">Zone:</th>
+                        <td>{{ cycle_count.zone }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>{{ cycle_count.get_status_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Started By:</th>
+                        <td>{{ cycle_count.started_by.get_full_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Started At:</th>
+                        <td>{{ cycle_count.started_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Completed By:</th>
+                        <td>{{ cycle_count.completed_by.get_full_name|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Completed At:</th>
+                        <td>{{ cycle_count.completed_at|date:"M d, Y H:i"|default:"-" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h5 class="mb-3">Count Results</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>SKU</th>
+                        <th>Location</th>
+                        <th class="text-end">Expected</th>
+                        <th class="text-end">Counted</th>
+                        <th class="text-end">Variance</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cycle_count.items.all %}
+                    <tr {% if item.has_discrepancy %}class="table-warning"{% endif %}>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.product.sku }}</td>
+                        <td>{{ item.product.location|default:"-" }}</td>
+                        <td class="text-end">{{ item.expected_quantity }}</td>
+                        <td class="text-end">{{ item.counted_quantity }}</td>
+                        <td class="text-end">
+                            {% with variance=item.counted_quantity|subtract:item.expected_quantity %}
+                            {% if variance < 0 %}
+                            <span class="text-danger">{{ variance }}</span>
+                            {% elif variance > 0 %}
+                            <span class="text-success">+{{ variance }}</span>
+                            {% else %}
+                            0
+                            {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>{{ item.discrepancy_notes|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h5 class="mb-3">Summary</h5>
+            <table class="table table-sm">
+                <tbody>
+                    <tr>
+                        <th style="width: 200px;">Total Items Counted:</th>
+                        <td>{{ cycle_count.items.count }}</td>
+                    </tr>
+                    <tr>
+                        <th>Items with Discrepancies:</th>
+                        <td>{{ cycle_count.items.discrepancies.count }}</td>
+                    </tr>
+                    <tr>
+                        <th>Accuracy Rate:</th>
+                        <td>{{ cycle_count.accuracy_rate|floatformat:2 }}%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Signatures -->
+    <div class="row mt-5">
+        <div class="col-6">
+            <div class="border-top pt-2">
+                <p class="mb-0">Count Performed By:</p>
+                <p class="mb-0">{{ cycle_count.started_by.get_full_name }}</p>
+                <p>{{ cycle_count.started_at|date:"M d, Y" }}</p>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="border-top pt-2">
+                <p class="mb-0">Verified By:</p>
+                <p class="mb-0">_____________________</p>
+                <p>Date: _________________</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        body {
+            font-size: 12pt;
+        }
+        .container {
+            width: 100%;
+            max-width: none;
+        }
+        .table-warning {
+            background-color: #fff3cd !important;
+            print-color-adjust: exact;
+        }
+    }
+</style>
+{% endblock %}

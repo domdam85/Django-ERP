@@ -1,0 +1,96 @@
+{% extends 'management/base_content.html' %}
+{% load static %}
+
+{% block management_content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Annual Projection</h5>
+                <h2 class="display-4">${{ annual_projection|floatformat:2 }}</h2>
+                <p class="card-text">
+                    <i class="fas fa-chart-line"></i> {{ growth_rate }}% projected growth
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quarterly Targets</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="quarterlyTargetsChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quarterly Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Quarter</th>
+                                <th>Target</th>
+                                <th>% of Annual</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quarter in quarterly_targets %}
+                            <tr>
+                                <td>{{ quarter.quarter }}</td>
+                                <td>${{ quarter.target|floatformat:2 }}</td>
+                                <td>{{ quarter.percentage|floatformat:1 }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('quarterlyTargetsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [{% for quarter in quarterly_targets %}'{{ quarter.quarter }}',{% endfor %}],
+            datasets: [{
+                label: 'Quarterly Targets',
+                data: [{% for quarter in quarterly_targets %}{{ quarter.target }},{% endfor %}],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1,
+                fill: true,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

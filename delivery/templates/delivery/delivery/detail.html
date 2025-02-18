@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Delivery{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">{{ page_title }}</h1>
+                <div>
+                    <a href="{% url 'delivery:delivery-list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Deliveries
+                    </a>
+                    {% if delivery.status != 'completed' and delivery.status != 'failed' %}
+                    <a href="{% url 'delivery:delivery-update' delivery.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Update Status
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Info -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Delivery Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge {% if delivery.status == 'pending' %}bg-warning
+                                         {% elif delivery.status == 'in_progress' %}bg-info
+                                         {% elif delivery.status == 'completed' %}bg-success
+                                         {% elif delivery.status == 'failed' %}bg-danger
+                                         {% else %}bg-secondary{% endif %}">
+                                {{ delivery.get_status_display }}
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-4">Created</dt>
+                        <dd class="col-sm-8">{{ delivery.created_at|date:"M d, Y H:i" }}</dd>
+
+                        <dt class="col-sm-4">Started</dt>
+                        <dd class="col-sm-8">{{ delivery.started_at|date:"M d, Y H:i"|default:"-" }}</dd>
+
+                        <dt class="col-sm-4">Completed</dt>
+                        <dd class="col-sm-8">{{ delivery.completed_at|date:"M d, Y H:i"|default:"-" }}</dd>
+
+                        <dt class="col-sm-4">Route</dt>
+                        <dd class="col-sm-8">
+                            <a href="{% url 'delivery:route-detail' delivery.stop.route.pk %}">
+                                {{ delivery.stop.route.name }}
+                            </a>
+                        </dd>
+
+                        <dt class="col-sm-4">Stop Sequence</dt>
+                        <dd class="col-sm-8">#{{ delivery.stop.sequence }}</dd>
+
+                        {% if delivery.status == 'failed' %}
+                        <dt class="col-sm-4">Exception Type</dt>
+                        <dd class="col-sm-8">{{ delivery.get_exception_type_display }}</dd>
+
+                        <dt class="col-sm-4">Description</dt>
+                        <dd class="col-sm-8">{{ delivery.description|linebreaks }}</dd>
+                        {% endif %}
+
+                        {% if delivery.status == 'completed' %}
+                        <dt class="col-sm-4">Signature</dt>
+                        <dd class="col-sm-8">
+                            {% if delivery.signature %}
+                            <img src="{{ delivery.signature.url }}" alt="Signature" class="img-fluid">
+                            {% else %}
+                            No signature available
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Proof of Delivery</dt>
+                        <dd class="col-sm-8">
+                            {% if delivery.proof_of_delivery %}
+                            <img src="{{ delivery.proof_of_delivery.url }}" alt="Proof of Delivery" class="img-fluid">
+                            {% else %}
+                            No proof of delivery available
+                            {% endif %}
+                        </dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Name</dt>
+                        <dd class="col-sm-8">{{ delivery.stop.customer.name }}</dd>
+
+                        <dt class="col-sm-4">Contact</dt>
+                        <dd class="col-sm-8">{{ delivery.stop.customer.contact_name }}</dd>
+
+                        <dt class="col-sm-4">Phone</dt>
+                        <dd class="col-sm-8">{{ delivery.stop.customer.phone }}</dd>
+
+                        <dt class="col-sm-4">Email</dt>
+                        <dd class="col-sm-8">{{ delivery.stop.customer.email }}</dd>
+
+                        <dt class="col-sm-4">Address</dt>
+                        <dd class="col-sm-8">{{ delivery.stop.customer.address }}</dd>
+
+                        <dt class="col-sm-4">Notes</dt>
+                        <dd class="col-sm-8">{{ delivery.notes|linebreaks|default:"No notes available" }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

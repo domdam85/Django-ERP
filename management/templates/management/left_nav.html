@@ -1,0 +1,133 @@
+{% load static %}
+
+<!-- Dashboard Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Dashboard</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'management:home' %}" class="left-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-tachometer-alt"></i></span>
+                <span class="left-nav-text">Management Dashboard</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'management:analytics' %}" class="left-nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-chart-line"></i></span>
+                <span class="left-nav-text">Analytics</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Route Management Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Route Management</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'management:route_assignment' %}" class="left-nav-link {% if request.resolver_match.url_name == 'route_assignment' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-route"></i></span>
+                <span class="left-nav-text">Route Assignment</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'management:route_optimization' %}" class="left-nav-link {% if request.resolver_match.url_name == 'route_optimization' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-map-marked-alt"></i></span>
+                <span class="left-nav-text">Route Optimization</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'management:route_monitoring' %}" class="left-nav-link {% if request.resolver_match.url_name == 'route_monitoring' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-map-marked"></i></span>
+                <span class="left-nav-text">Route Monitoring</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Financial Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Financial</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'management:revenue' %}" class="left-nav-link {% if request.resolver_match.url_name == 'revenue' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-dollar-sign"></i></span>
+                <span class="left-nav-text">Revenue</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'management:expenses' %}" class="left-nav-link {% if request.resolver_match.url_name == 'expenses' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-receipt"></i></span>
+                <span class="left-nav-text">Expenses</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'management:projections' %}" class="left-nav-link {% if request.resolver_match.url_name == 'projections' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-chart-pie"></i></span>
+                <span class="left-nav-text">Projections</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Team Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Team</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'management:team_performance' %}" class="left-nav-link {% if request.resolver_match.url_name == 'team_performance' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-users"></i></span>
+                <span class="left-nav-text">Team Performance</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'management:schedules' %}" class="left-nav-link {% if request.resolver_match.url_name == 'schedules' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-calendar-alt"></i></span>
+                <span class="left-nav-text">Schedules</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Reports Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Reports</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'management:sales_report' %}" class="left-nav-link {% if request.resolver_match.url_name == 'sales_report' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                <span class="left-nav-text">Sales Report</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'management:inventory_report' %}" class="left-nav-link {% if request.resolver_match.url_name == 'inventory_report' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-boxes"></i></span>
+                <span class="left-nav-text">Inventory Report</span>
+            </a>
+        </li>
+        {# <li class="left-nav-item">
+            <a href="{% url 'management:delivery_report' %}" class="left-nav-link {% if request.resolver_match.url_name == 'delivery_report' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-truck"></i></span>
+                <span class="left-nav-text">Delivery Report</span>
+            </a>
+        </li> #}
+    </ul>
+</div>
+
+<!-- Settings Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Settings</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'management:company_settings' %}" class="left-nav-link {% if request.resolver_match.url_name == 'company_settings' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-building"></i></span>
+                <span class="left-nav-text">Company Settings</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'management:user_management' %}" class="left-nav-link {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-user-cog"></i></span>
+                <span class="left-nav-text">User Management</span>
+            </a>
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,57 @@
+{% load static %}
+
+<div class="left-nav-section">
+    <h6 class="left-nav-header">Delivery Route</h6>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a href="{% url 'delivery:route-overview' %}" class="left-nav-link {% if request.resolver_match.url_name == 'route-overview' %}active{% endif %}">
+                <i class="left-nav-icon bi bi-list-check"></i>
+                <span class="left-nav-text">Today's Route</span>
+            </a>
+        </li>
+        {% if route %}
+            {% if van_loading and van_loading.status != 'completed' %}
+                <li class="nav-item">
+                    <a href="{% url 'delivery:van-loading' van_loading.pk %}" class="left-nav-link {% if request.resolver_match.url_name == 'van-loading' %}active{% endif %}">
+                        <i class="left-nav-icon bi bi-truck"></i>
+                        <span class="left-nav-text">Van Loading</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% if current_stop %}
+                <li class="nav-item">
+                    <a href="{% url 'delivery:next-stop' current_stop.pk %}" class="left-nav-link {% if request.resolver_match.url_name == 'next-stop' %}active{% endif %}">
+                        <i class="left-nav-icon bi bi-geo-alt"></i>
+                        <span class="left-nav-text">Current Stop</span>
+                    </a>
+                </li>
+            {% endif %}
+        {% endif %}
+    </ul>
+</div>
+
+<div class="left-nav-section">
+    <h6 class="left-nav-header">Delivery Actions</h6>
+    <ul class="nav flex-column">
+        {% if current_delivery %}
+            <li class="nav-item">
+                <a href="{% url 'delivery:verify-delivery' current_delivery.pk %}" class="left-nav-link {% if request.resolver_match.url_name == 'verify-delivery' %}active{% endif %}">
+                    <i class="left-nav-icon bi bi-check2-square"></i>
+                    <span class="left-nav-text">Verify Order</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'delivery:proof-of-delivery' current_delivery.pk %}" class="left-nav-link {% if request.resolver_match.url_name == 'proof-of-delivery' %}active{% endif %}">
+                    <i class="left-nav-icon bi bi-camera"></i>
+                    <span class="left-nav-text">Capture Proof</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#exceptionModal{{ current_delivery.pk }}" class="left-nav-link" data-bs-toggle="modal">
+                    <i class="left-nav-icon bi bi-exclamation-triangle"></i>
+                    <span class="left-nav-text">Report Exception</span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</div>

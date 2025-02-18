@@ -1,0 +1,32 @@
+{% load static %}
+
+<!-- Sales Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Sales</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'sales:home' %}" class="left-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-chart-line"></i></span>
+                <span class="left-nav-text">Sales Dashboard</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'sales:customer-list' %}" class="left-nav-link {% if request.resolver_match.url_name == 'customer-list' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-users"></i></span>
+                <span class="left-nav-text">Customers</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'sales:order-list' %}" class="left-nav-link {% if request.resolver_match.url_name == 'order-list' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-shopping-cart"></i></span>
+                <span class="left-nav-text">Orders</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'sales:route-overview' %}" class="left-nav-link {% if request.resolver_match.url_name == 'route-overview' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-route"></i></span>
+                <span class="left-nav-text">Route Management</span>
+            </a>
+        </li>
+    </ul>
+</div>

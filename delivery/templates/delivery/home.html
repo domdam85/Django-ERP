@@ -1,0 +1,188 @@
+{% extends 'delivery/base.html' %}
+
+{% block title %}Delivery Dashboard - ERP System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Delivery Dashboard</h1>
+                <a href="{% url 'delivery:route-list' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Route
+                </a>
+            </div>
+            <p class="text-muted">Overview of delivery operations and routes</p>
+        </div>
+    </div>
+
+    <!-- Delivery Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Deliveries</h5>
+                    <div class="display-4 text-danger mb-2">{{ today_deliveries|default:"0" }}</div>
+                    <p class="text-muted mb-0">{{ completed_deliveries|default:"0" }} completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Active Routes</h5>
+                    <div class="display-4 text-success mb-2">{{ active_routes|default:"0" }}</div>
+                    <p class="text-muted mb-0">{{ active_drivers|default:"0" }} drivers on road</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Deliveries</h5>
+                    <div class="display-4 text-warning mb-2">{{ pending_deliveries|default:"0" }}</div>
+                    <p class="text-muted mb-0">Need assignment</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Routes Map -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Active Routes Map</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Active Drivers -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Active Drivers</h5>
+                </div>
+                <div class="card-body">
+                    {% if active_driver_list %}
+                    <div class="list-group list-group-flush">
+                        {% for driver in active_driver_list %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ driver.name }}</h6>
+                                    <p class="mb-1 text-muted">
+                                        <small>
+                                            <i class="fas fa-map-marker-alt"></i> {{ driver.current_location }}
+                                        </small>
+                                    </p>
+                                </div>
+                                <span class="badge bg-{{ driver.status_color }}">{{ driver.status }}</span>
+                            </div>
+                            <div class="progress mt-2" style="height: 5px;">
+                                <div class="progress-bar" role="progressbar" style="width: {{ driver.route_progress }}%"></div>
+                            </div>
+                            <small class="text-muted">{{ driver.deliveries_completed }}/{{ driver.total_deliveries }} deliveries</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center my-3">No active drivers</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Deliveries -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Today's Deliveries</h5>
+                    <a href="{% url 'delivery:delivery-list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if today_delivery_list %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Address</th>
+                                    <th>Driver</th>
+                                    <th>Status</th>
+                                    <th>ETA</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for delivery in today_delivery_list %}
+                                <tr>
+                                    <td>{{ delivery.order.number }}</td>
+                                    <td>{{ delivery.customer_name }}</td>
+                                    <td>{{ delivery.delivery_address }}</td>
+                                    <td>{{ delivery.driver.name }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ delivery.status_color }}">
+                                            {{ delivery.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ delivery.eta|time:"H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'delivery:delivery-detail' delivery.id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center my-3">No deliveries scheduled for today</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">{{ total_deliveries }} total deliveries</span>
+                        <a href="{% url 'delivery:delivery-list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map {
+        background-color: var(--bs-dark);
+        border-radius: 0 0 0.375rem 0.375rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize map
+        var map = L.map('map').setView([51.505, -0.09], 13);
+        
+        // Add dark theme map tiles
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            maxZoom: 19
+        }).addTo(map);
+    });
+</script>
+{% endblock %}

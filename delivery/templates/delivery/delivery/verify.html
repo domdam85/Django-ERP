@@ -1,0 +1,169 @@
+{% extends "delivery/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Verify Delivery</h2>
+            <div class="badge bg-primary">Order #{{ object.order.order_number }}</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Order Verification -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="card-title mb-0">Order Items</h4>
+                    {% if not object.status == 'delivered' %}
+                        <button class="btn btn-outline-primary" id="scanButton">
+                            <i class="bi bi-upc-scan"></i> Scan Items
+                        </button>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <form method="post" id="verificationForm">
+                        {% csrf_token %}
+                        <div class="table-responsive">
+                            <table class="table" id="orderItems">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px"></th>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order_items %}
+                                        <tr>
+                                            <td>
+                                                <div class="form-check">
+                                                    <input type="checkbox" 
+                                                           class="form-check-input item-check" 
+                                                           id="item_{{ item.id }}"
+                                                           data-item-id="{{ item.id }}"
+                                                           {% if object.status == 'delivered' %}disabled checked{% endif %}>
+                                                </div>
+                                            </td>
+                                            <td>{{ item.product.name }}</td>
+                                            <td>{{ item.quantity }}</td>
+                                            <td>
+                                                <span class="status-badge badge bg-secondary">Pending</span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Delivery Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3"
+                                    {% if object.status == 'delivered' %}disabled{% endif %}>{{ object.notes }}</textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            {% if not object.status == 'delivered' %}
+                                <button type="submit" class="btn btn-success btn-lg" id="confirmButton" disabled>
+                                    Confirm Verification
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="window.history.back()">
+                                    Cancel
+                                </button>
+                            {% else %}
+                                <button type="button" class="btn btn-primary" onclick="window.history.back()">
+                                    Back
+                                </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Customer Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Customer Information</h4>
+                </div>
+                <div class="card-body">
+                    <h5>{{ object.order.customer.name }}</h5>
+                    <p class="mb-1">{{ object.order.customer.address }}</p>
+                    <p class="mb-1">
+                        <strong>Contact:</strong> {{ object.order.customer.contact_person }}<br>
+                        <strong>Phone:</strong> {{ object.order.customer.phone }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Verification Progress -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Verification Progress</h4>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: 0%" id="verificationProgress"></div>
+                    </div>
+                    <p class="text-center mb-0">
+                        <span id="verifiedCount">0</span> of <span id="totalCount">{{ order_items|length }}</span> items verified
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.item-check');
+    const confirmButton = document.getElementById('confirmButton');
+    const progressBar = document.getElementById('verificationProgress');
+    const verifiedCountEl = document.getElementById('verifiedCount');
+    const totalCount = checkboxes.length;
+
+    function updateProgress() {
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const percentage = (checkedCount / totalCount) * 100;
+        
+        progressBar.style.width = `${percentage}%`;
+        verifiedCountEl.textContent = checkedCount;
+        confirmButton.disabled = checkedCount !== totalCount;
+    }
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const row = this.closest('tr');
+            const badge = row.querySelector('.status-badge');
+            
+            if (this.checked) {
+                badge.className = 'status-badge badge bg-success';
+                badge.textContent = 'Verified';
+            } else {
+                badge.className = 'status-badge badge bg-secondary';
+                badge.textContent = 'Pending';
+            }
+            
+            updateProgress();
+        });
+    });
+
+    const scanButton = document.getElementById('scanButton');
+    if (scanButton) {
+        scanButton.addEventListener('click', function() {
+            // TODO: Implement barcode scanning
+            alert('Barcode scanning functionality to be implemented');
+        });
+    }
+
+    // Initialize progress on load
+    updateProgress();
+});
+</script>
+{% endblock %}
+
+{% endblock %}

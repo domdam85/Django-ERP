@@ -1,0 +1,210 @@
+{% extends 'warehouse/base.html' %}
+{% load static %}
+{% load warehouse_filters %}
+
+{% block title %}Staged Orders - ERP System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3">Staged Orders</h1>
+            <p class="text-muted">All orders ready for van loading</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'warehouse:van-loading' %}" class="btn btn-primary">
+                <i class="fas fa-truck-loading"></i> Van Loading Dashboard
+            </a>
+        </div>
+    </div>
+
+    {% if orders %}
+        {% regroup orders by picking_list.delivery_route as route_list %}
+        {% for route in route_list %}
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-route text-primary me-2"></i>
+                        <h5 class="mb-0">{{ route.grouper.name }}</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Pick List</th>
+                                    <th>Staging Area</th>
+                                    <th>Items</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in route.list %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'warehouse:pick-list-detail' order.picking_list.pk %}" class="text-decoration-none">
+                                                <i class="fas fa-clipboard-list"></i> #{{ order.picking_list.id }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-map-marker-alt"></i> {{ order.staging_area.name }}
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-boxes"></i>
+                                            {% with items=order.picking_list.items.all %}
+                                            {{ items|sum_quantities }} units
+                                            <small class="text-muted">({{ items.count }} products)</small>
+                                            {% endwith %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if order.status == 'loaded' %}success{% elif order.status == 'loading' %}warning{% else %}secondary{% endif %}">
+                                                {{ order.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                {% if order.status == 'staged' %}
+                                                    <a href="{% url 'warehouse:scan-loading' order.pk %}"
+                                                       class="btn btn-sm btn-outline-success">
+                                                        <i class="fas fa-barcode"></i> Start Loading
+                                                    </a>
+                                                {% elif order.status == 'loading' %}
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-warning"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#completeLoadingModal"
+                                                            data-order-id="{{ order.id }}"
+                                                            data-route-name="{{ route.grouper.name }}">
+                                                        <i class="fas fa-check"></i> Complete Loading
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center py-4">
+                <p class="mb-0">No staged orders found.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Start Loading Modal -->
+<div class="modal fade" id="startLoadingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-truck-loading"></i> Start Loading Process
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="startLoadingForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-route fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Route</h6>
+                            <p class="mb-0" id="startLoadingRouteName"></p>
+                        </div>
+                    </div>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-info-circle"></i> Are you ready to begin loading the orders for this route?
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-outline-success">
+                        <i class="fas fa-truck-loading"></i> Start Loading
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Loading Modal -->
+<div class="modal fade" id="completeLoadingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle"></i> Complete Loading Process
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="completeLoadingForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-route fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1">Route</h6>
+                            <p class="mb-0" id="completeLoadingRouteName"></p>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Confirmation Required:</strong> This action will update the status of all items to 'Loaded'.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-outline-warning">
+                        <i class="fas fa-check"></i> Complete Loading
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startLoadingModal = document.getElementById('startLoadingModal');
+    const completeLoadingModal = document.getElementById('completeLoadingModal');
+    const startLoadingForm = document.getElementById('startLoadingForm');
+    const completeLoadingForm = document.getElementById('completeLoadingForm');
+
+    startLoadingModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const orderId = button.dataset.orderId;
+        const routeName = button.dataset.routeName;
+        
+        document.getElementById('startLoadingRouteName').textContent = routeName;
+        startLoadingForm.action = `/warehouse/van-loading/${orderId}/start/`;
+    });
+
+    completeLoadingModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const orderId = button.dataset.orderId;
+        const routeName = button.dataset.routeName;
+        
+        document.getElementById('completeLoadingRouteName').textContent = routeName;
+        completeLoadingForm.action = `/warehouse/van-loading/${orderId}/complete/`;
+    });
+});
+</script>
+{% endblock %}

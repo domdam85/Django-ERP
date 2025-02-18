@@ -1,0 +1,51 @@
+{% extends 'warehouse/base_content.html' %}
+{% load static %}
+
+{% block warehouse_content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ page_title }}</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Inventory Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Quantity</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in inventory_data %}
+                                <tr>
+                                    <td>{{ item.category }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>{{ item.percentage|floatformat:1 }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>Total</th>
+                                    <th>{{ total_inventory }}</th>
+                                    <th>100%</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

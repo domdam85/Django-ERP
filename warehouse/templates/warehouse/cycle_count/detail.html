@@ -1,0 +1,145 @@
+{% extends "warehouse/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">{{ page_title }}</h1>
+                    <p class="text-muted mb-0">Zone: {{ cycle_count.zone }} | Status: {{ cycle_count.get_status_display }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'warehouse:cycle-count-list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                    {% if cycle_count.status == 'pending' %}
+                        <a href="{% url 'warehouse:cycle-count-start' cycle_count.pk %}" class="btn btn-success">
+                            <i class="fas fa-play"></i> Start Count
+                        </a>
+                    {% elif cycle_count.status == 'in_progress' %}
+                        <a href="{% url 'warehouse:cycle-count-complete' cycle_count.pk %}" class="btn btn-warning">
+                            <i class="fas fa-check"></i> Complete Count
+                        </a>
+                        <a href="{% url 'warehouse:cycle-count-cancel' cycle_count.pk %}" class="btn btn-danger">
+                            <i class="fas fa-times"></i> Cancel Count
+                        </a>
+                    {% elif cycle_count.status == 'completed' %}
+                        <a href="{% url 'warehouse:cycle-count-report' cycle_count.pk %}" class="btn btn-primary" target="_blank">
+                            <i class="fas fa-print"></i> Print Report
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cycle Count Info -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Count Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Started By</dt>
+                        <dd class="col-sm-8">{{ cycle_count.started_by.get_full_name }}</dd>
+
+                        <dt class="col-sm-4">Started At</dt>
+                        <dd class="col-sm-8">{{ cycle_count.started_at|date:"M d, Y H:i" }}</dd>
+
+                        {% if cycle_count.status == 'completed' %}
+                        <dt class="col-sm-4">Completed By</dt>
+                        <dd class="col-sm-8">{{ cycle_count.completed_by.get_full_name }}</dd>
+
+                        <dt class="col-sm-4">Completed At</dt>
+                        <dd class="col-sm-8">{{ cycle_count.completed_at|date:"M d, Y H:i" }}</dd>
+                        {% endif %}
+
+                        <dt class="col-sm-4">Total Items</dt>
+                        <dd class="col-sm-8">{{ cycle_count.items.count }}</dd>
+
+                        <dt class="col-sm-4">Progress</dt>
+                        <dd class="col-sm-8">
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {% widthratio cycle_count.counted_items cycle_count.total_items 100 %}%"
+                                     aria-valuenow="{% widthratio cycle_count.counted_items cycle_count.total_items 100 %}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {{ cycle_count.counted_items }}/{{ cycle_count.total_items }}
+                                </div>
+                            </div>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <!-- Items Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Items to Count</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>SKU</th>
+                                    <th>Location</th>
+                                    <th class="text-end">Expected</th>
+                                    <th class="text-end">Counted</th>
+                                    <th class="text-end">Variance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in cycle_count.items.all %}
+                                    <tr {% if item.has_discrepancy %}class="table-warning"{% endif %}>
+                                        <td>{{ item.product.name }}</td>
+                                        <td>{{ item.product.sku }}</td>
+                                        <td>{{ item.product.location|default:"-" }}</td>
+                                        <td class="text-end">{{ item.expected_quantity }}</td>
+                                        <td class="text-end">{{ item.counted_quantity|default:"-" }}</td>
+                                        <td class="text-end">
+                                            {% if item.counted_quantity %}
+                                                {% with variance=item.counted_quantity|subtract:item.expected_quantity %}
+                                                    {% if variance < 0 %}
+                                                        <span class="text-danger">{{ variance }}</span>
+                                                    {% elif variance > 0 %}
+                                                        <span class="text-success">+{{ variance }}</span>
+                                                    {% else %}
+                                                        0
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if cycle_count.status == 'in_progress' %}
+                                                <a href="{% url 'warehouse:cycle-count-item-update' cycle_count.pk item.pk %}" 
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-edit"></i> Update
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center">No items to count</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

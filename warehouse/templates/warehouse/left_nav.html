@@ -1,0 +1,108 @@
+{% load static %}
+
+<!-- Dashboard Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Dashboard</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:home' %}" class="left-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="bi bi-speedometer2"></i></span>
+                <span class="left-nav-text">Overview</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:inventory-stats' %}" class="left-nav-link {% if request.resolver_match.url_name == 'inventory-stats' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-chart-bar"></i></span>
+                <span class="left-nav-text">Inventory Stats</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Pick & Stage Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Pick & Stage</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:picking-list' %}" class="left-nav-link {% if request.resolver_match.url_name == 'picking-list' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-list"></i></span>
+                <span class="left-nav-text">Pick Lists</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:create-pick-list' %}" class="left-nav-link {% if request.resolver_match.url_name == 'create-pick-list' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-plus"></i></span>
+                <span class="left-nav-text">Create Pick List</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:staging-areas' %}" class="left-nav-link {% if request.resolver_match.url_name == 'staging-areas' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-boxes"></i></span>
+                <span class="left-nav-text">Staging Areas</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Van Loading Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Van Loading</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:van-loading' %}" class="left-nav-link {% if request.resolver_match.url_name == 'van-loading' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-truck-loading"></i></span>
+                <span class="left-nav-text">Van Loading</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:staged-orders' %}" class="left-nav-link {% if request.resolver_match.url_name == 'staged-orders' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-clipboard-list"></i></span>
+                <span class="left-nav-text">Staged Orders</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Receiving Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Receiving</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:po-list' %}" class="left-nav-link {% if request.resolver_match.url_name == 'po-list' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-file-invoice"></i></span>
+                <span class="left-nav-text">Purchase Orders</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:po-create' %}" class="left-nav-link {% if request.resolver_match.url_name == 'po-create' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-plus"></i></span>
+                <span class="left-nav-text">Create PO</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Inventory Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Inventory</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:cycle-count-list' %}" class="left-nav-link {% if request.resolver_match.url_name == 'cycle-count-list' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-clipboard-check"></i></span>
+                <span class="left-nav-text">Cycle Counts</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:inventory-list' %}" class="left-nav-link {% if request.resolver_match.url_name == 'inventory-list' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-boxes"></i></span>
+                <span class="left-nav-text">Inventory</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'warehouse:inventory-create' %}" class="left-nav-link {% if request.resolver_match.url_name == 'inventory-create' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-plus"></i></span>
+                <span class="left-nav-text">Add Item</span>
+            </a>
+        </li>
+    </ul>
+</div>

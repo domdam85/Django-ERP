@@ -1,0 +1,111 @@
+{% extends "sales/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ object.name }}</h2>
+            <div class="btn-group float-end">
+                <a href="{% url 'sales:order-create' object.pk %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> New Order
+                </a>
+                <a href="{% url 'sales:customer-stop' object.pk %}" class="btn btn-outline-secondary">
+                    Back to Stop
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Customer Info Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>Contact:</strong> {{ object.contact_person }}</p>
+                    <p class="mb-1"><strong>Phone:</strong> {{ object.phone }}</p>
+                    <p class="mb-1"><strong>Email:</strong> {{ object.email }}</p>
+                    <p class="mb-1"><strong>Address:</strong> {{ object.address }}</p>
+                    <p class="mb-1"><strong>Payment Terms:</strong> {{ object.payment_terms }}</p>
+                    <p class="mb-0"><strong>Tax Rate:</strong> {{ object.tax_rate }}%</p>
+                </div>
+            </div>
+
+            <!-- Previous Notes Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Previous Notes</h5>
+                </div>
+                <div class="card-body">
+                    {% if previous_notes %}
+                        {% for note in previous_notes %}
+                            <div class="border-bottom mb-3 pb-2">
+                                <p class="mb-0">{{ note }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No previous notes found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Recent Orders Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Orders</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                        {% for order in recent_orders %}
+                            <div class="border-bottom mb-3 pb-2">
+                                <h6>Order #{{ order.order_number }}</h6>
+                                <p class="mb-1">Department: {{ order.department }}</p>
+                                <small class="text-muted">{{ order.created_at|date:"M d, Y" }}</small>
+                                {% if order.items.all %}
+                                    <div class="mt-2">
+                                        {% for item in order.items.all %}
+                                            <div class="small">
+                                                {{ item.product.name }} × {{ item.quantity }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No recent orders found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Favorite Items Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Frequently Ordered Items</h5>
+                </div>
+                <div class="card-body">
+                    {% if favorite_items %}
+                        <div class="list-group">
+                            {% for item in favorite_items %}
+                                <div class="list-group-item">
+                                    <h6 class="mb-1">{{ item.product__name }}</h6>
+                                    <small class="text-muted">Ordered {{ item.order_count }} times</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No frequently ordered items found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sales Performance Report</title>
+</head>
+<body>
+    <h1>{{ report_title }}</h1>
+    
+    <h2>Sales Metrics</h2>
+    <ul>
+        <li>Monthly Sales Performance: {{ sales_metrics.monthly_sales_performance }}</li>
+        <li>Daily Sales Average (Last 30 Days): {{ sales_metrics.daily_sales_avg }}</li>
+        <li>Customer Order Frequency Average: {{ sales_metrics.customer_order_frequency }}</li>
+    </ul>
+
+    <h2>Top Selling Products</h2>
+    <ul>
+        {% for product in sales_metrics.top_selling_products %}
+        <li>{{ product.name }} - Total Sold: {{ product.total_sold }}</li>
+        {% endfor %}
+    </ul>
+    
+    <p>Report generated on: {{ current_date }}</p>
+</body>
+</html>

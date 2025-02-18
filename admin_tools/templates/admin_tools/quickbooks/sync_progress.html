@@ -1,0 +1,67 @@
+{% if current_session %}
+    {% if current_session.status == 'running' %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Current Sync Progress</h5>
+                
+                <!-- Overall Progress -->
+                <div class="progress mb-3" style="height: 25px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                         role="progressbar" 
+                         style="width: {{ current_session.progress_percentage }}%"
+                         aria-valuenow="{{ current_session.progress_percentage }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        {{ current_session.progress_percentage }}%
+                    </div>
+                </div>
+
+                <!-- Status Summary -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <strong>Status:</strong>
+                        <span class="badge bg-primary">Running</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Total Objects:</strong>
+                        <span id="total-objects">{{ current_session.total_objects }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Synced:</strong>
+                        <span id="synced-objects">{{ current_session.synced_objects }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Failed:</strong>
+                        <span id="failed-objects">{{ current_session.failed_objects }}</span>
+                    </div>
+                </div>
+
+                <!-- Status Message -->
+                <div class="alert {% if current_session.synced_objects == 0 %}alert-success{% else %}alert-info{% endif %} mb-0">
+                    <i class="fas {% if current_session.synced_objects == 0 %}fa-check-circle{% else %}fa-info-circle{% endif %} me-2"></i>
+                    {% if current_session.synced_objects == 0 %}
+                        Sync started successfully. Preparing to synchronize objects...
+                    {% else %}
+                        Synchronizing objects... {{ current_session.synced_objects }} of {{ current_session.total_objects }} complete
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert {% if current_session.status == 'completed' %}alert-success{% elif current_session.status == 'cancelled' %}alert-warning{% else %}alert-danger{% endif %} mb-4">
+            <i class="fas {% if current_session.status == 'completed' %}fa-check-circle{% elif current_session.status == 'cancelled' %}fa-exclamation-circle{% else %}fa-times-circle{% endif %} me-2"></i>
+            {% if current_session.status == 'completed' %}
+                Sync completed successfully. {{ current_session.synced_objects }} objects synchronized.
+            {% elif current_session.status == 'cancelled' %}
+                Sync was cancelled by user after processing {{ current_session.synced_objects }} objects.
+            {% else %}
+                Sync failed after processing {{ current_session.synced_objects }} objects. Check the error log for details.
+            {% endif %}
+        </div>
+    {% endif %}
+{% else %}
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle me-2"></i>
+        No sync currently in progress. Use the controls above to start a new sync.
+    </div>
+{% endif %}

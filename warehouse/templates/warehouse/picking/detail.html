@@ -1,0 +1,229 @@
+{% extends "warehouse/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2>Pick List Details</h2>
+            <p class="mb-0">Route: {{ pick_list.delivery_route.name }} | Date: {{ pick_list.delivery_date }}</p>
+        </div>
+        <div class="col-auto">
+            {% if pick_list.status == 'pending' %}
+                <a href="{% url 'warehouse:start-picking' pick_list.pk %}" class="btn btn-success">
+                    <i class="bi bi-play"></i> Start Picking
+                </a>
+            {% elif pick_list.status == 'in_progress' %}
+                <a href="{% url 'warehouse:complete-picking' pick_list.pk %}" class="btn btn-warning">
+                    <i class="bi bi-check2"></i> Complete Picking
+                </a>
+            {% elif pick_list.status == 'completed' %}
+                <a href="{% url 'warehouse:stage-order' pick_list.pk %}" class="btn btn-info">
+                    <i class="bi bi-box-seam"></i> Stage Order
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="alert alert-{% if pick_list.status == 'completed' %}success{% elif pick_list.status == 'in_progress' %}warning{% else %}secondary{% endif %}">
+                Status: {{ pick_list.get_status_display }}
+                {% if pick_list.assigned_to %}
+                    | Assigned to: {{ pick_list.assigned_to.get_full_name }}
+                {% endif %}
+                {% if pick_list.started_at %}
+                    | Started: {{ pick_list.started_at|date:"M d, Y H:i" }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Pick List Items -->
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0">Items to Pick</h5>
+                </div>
+                <div class="col-auto">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="scanInput" placeholder="Scan Product..." {% if pick_list.status != 'in_progress' %}disabled{% endif %}>
+                        <button class="btn btn-outline-secondary" type="button" id="scanButton" {% if pick_list.status != 'in_progress' %}disabled{% endif %}>
+                            <i class="bi bi-upc-scan"></i> Scan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="pickListTable">
+                    <thead>
+                        <tr>
+                            <th>Location</th>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Total Quantity</th>
+                            <th>Picked Quantity</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr data-sku="{{ item.product.sku }}" id="item-row-{{ item.id }}">
+                                <td>{{ item.product.location }}</td>
+                                <td>{{ item.product.name }}</td>
+                                <td>{{ item.product.sku }}</td>
+                                <td>{{ item.total_quantity }}</td>
+                                <td>{{ item.picked_quantity }}</td>
+                                <td>
+                                    <span class="badge bg-{% if item.status == 'completed' %}success{% elif item.status == 'partial' %}warning{% else %}secondary{% endif %}">
+                                        {{ item.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ item.notes|default:"-" }}</td>
+                                <td>
+                                    {% if pick_list.status == 'in_progress' %}
+                                        <button type="button" 
+                                                class="btn btn-sm btn-primary update-quantity" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#updateQuantityModal"
+                                                data-item-id="{{ item.id }}"
+                                                data-product-name="{{ item.product.name }}"
+                                                data-total-quantity="{{ item.total_quantity }}"
+                                                data-picked-quantity="{{ item.picked_quantity }}">
+                                            <i class="bi bi-pencil"></i> Update
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Quantity Modal -->
+<div class="modal fade" id="updateQuantityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Picked Quantity</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="updateQuantityForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="item_id" id="itemId">
+                    <div class="mb-3">
+                        <label class="form-label">Product</label>
+                        <input type="text" class="form-control" id="productName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Total Quantity Required</label>
+                        <input type="number" class="form-control" id="totalQuantity" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pickedQuantity" class="form-label">Picked Quantity</label>
+                        {{ form.quantity }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        {{ form.notes }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const updateQuantityModal = document.getElementById('updateQuantityModal');
+    const quantityInput = document.getElementById('id_quantity');
+    const notesInput = document.getElementById('id_notes');
+    const itemIdInput = document.getElementById('itemId');
+    const productNameInput = document.getElementById('productName');
+    const totalQuantityInput = document.getElementById('totalQuantity');
+    const updateQuantityForm = document.getElementById('updateQuantityForm');
+    const scanInput = document.getElementById('scanInput');
+
+    // Handle Update Quantity button clicks
+    document.querySelectorAll('.update-quantity').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            const productName = this.dataset.productName;
+            const totalQuantity = this.dataset.totalQuantity;
+            const pickedQuantity = this.dataset.pickedQuantity;
+
+            itemIdInput.value = itemId;
+            productNameInput.value = productName;
+            totalQuantityInput.value = totalQuantity;
+            quantityInput.value = pickedQuantity;
+            quantityInput.max = totalQuantity;
+            notesInput.value = '';
+        });
+    });
+
+    // Handle scanning
+    scanInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const sku = this.value.trim();
+            const row = document.querySelector(`tr[data-sku="${sku}"]`);
+            
+            if (row) {
+                row.classList.add('table-primary');
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const updateBtn = row.querySelector('.update-quantity');
+                if (updateBtn) {
+                    updateBtn.click();
+                }
+                setTimeout(() => row.classList.remove('table-primary'), 2000);
+            } else {
+                alert('Product not found in this pick list');
+            }
+            this.value = '';
+        }
+    });
+
+    // Handle form submission
+    updateQuantityForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        try {
+            const response = await fetch("{% url 'warehouse:update-pick-quantity' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || 'Failed to update quantity');
+            }
+        } catch (error) {
+            alert('An error occurred while updating the quantity');
+        }
+    });
+});
+</script>
+{% endblock %}

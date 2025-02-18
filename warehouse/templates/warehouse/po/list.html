@@ -1,0 +1,81 @@
+{% extends "warehouse/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Purchase Orders</h2>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <form method="get" class="d-flex gap-3">
+                <div class="flex-grow-1">
+                    <input type="text" name="search" class="form-control" placeholder="Search by PO number or vendor" value="{{ search_query }}">
+                </div>
+                <div>
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Statuses</option>
+                        <option value="open" {% if status_filter == "open" %}selected{% endif %}>Open</option>
+                        <option value="partially_received" {% if status_filter == "partially_received" %}selected{% endif %}>Partially Received</option>
+                        <option value="completed" {% if status_filter == "completed" %}selected{% endif %}>Completed</option>
+                        <option value="cancelled" {% if status_filter == "cancelled" %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </form>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'warehouse:po-create' %}" class="btn btn-success">
+                <i class="bi bi-plus-lg"></i> New Purchase Order
+            </a>
+        </div>
+    </div>
+
+    <!-- Purchase Orders Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if purchase_orders %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>PO Number</th>
+                                <th>Vendor</th>
+                                <th>Order Date</th>
+                                <th>Expected Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for po in purchase_orders %}
+                                <tr>
+                                    <td>{{ po.po_number }}</td>
+                                    <td>{{ po.vendor.name }}</td>
+                                    <td>{{ po.order_date }}</td>
+                                    <td>{{ po.expected_date }}</td>
+                                    <td>{{ po.get_status_display }}</td>
+                                    <td>
+                                        <a href="{% url 'warehouse:po-detail' po.pk %}" class="btn btn-sm btn-primary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>No purchase orders found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

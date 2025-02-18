@@ -1,0 +1,69 @@
+{% extends "warehouse/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2>Receive Purchase Order: {{ po.po_number }}</h2>
+    
+    <form method="post" novalidate>
+        {% csrf_token %}
+        
+        <!-- Display any non-field errors -->
+        {{ form.non_field_errors }}
+        
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Ordered Quantity</th>
+                    <th>Received So Far</th>
+                    <th>Remaining Quantity</th>
+                    <th>Quantity Receiving</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    {% with rec_field="received_items_"|add:item.id|stringformat:"s" %}
+                    {% with notes_field="notes_"|add:item.id|stringformat:"s" %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.ordered_quantity }}</td>
+                        <td>{{ item.received_quantity }}</td>
+                        <td>{{ item.ordered_quantity|add:-item.received_quantity }}</td>
+                        <td>
+                            {{ form[rec_field] }}
+                            {% if form[rec_field].errors %}
+                                <div class="text-danger">
+                                    {{ form[rec_field].errors }}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ form[notes_field] }}
+                            {% if form[notes_field].errors %}
+                                <div class="text-danger">
+                                    {{ form[notes_field].errors }}
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- General notes field -->
+        <div class="mb-3">
+            <label for="{{ form.notes.id_for_label }}" class="form-label">General Notes</label>
+            {{ form.notes }}
+            {% if form.notes.errors %}
+                <div class="text-danger">{{ form.notes.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Submit Received Items</button>
+    </form>
+</div>
+{% endblock %}

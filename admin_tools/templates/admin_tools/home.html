@@ -1,0 +1,155 @@
+{% extends 'admin_tools/base_content.html' %}
+
+{% block title %}Admin Tools - ERP System{% endblock %}
+
+{% block admin_content %}
+<div class="row">
+    <!-- System Status -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">System Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6>Server Resources</h6>
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>CPU Usage</span>
+                            <span class="text-primary">{{ cpu_usage|default:"0" }}%</span>
+                        </label>
+                        <div class="progress">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ cpu_usage|default:'0' }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>Memory Usage</span>
+                            <span class="text-success">{{ memory_usage|default:"0" }}%</span>
+                        </label>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ memory_usage|default:'0' }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>Disk Usage</span>
+                            <span class="text-warning">{{ disk_usage|default:"0" }}%</span>
+                        </label>
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ disk_usage|default:'0' }}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6>Services Status</h6>
+                    <ul class="list-group">
+                        {% for service in services %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ service.name }}
+                            <span class="badge bg-{{ service.status_color }} rounded-pill">{{ service.status }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Activity</h5>
+                <a href="{% url 'admin_tools:audit_logs' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_activities %}
+                <div class="list-group list-group-flush">
+                    {% for activity in recent_activities %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ activity.action }}</h6>
+                            <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">{{ activity.description }}</p>
+                        <small>
+                            <span class="text-muted">By:</span> {{ activity.user }}
+                            <span class="text-muted">IP:</span> {{ activity.ip_address }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center my-3">No recent activity</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Backup Status -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Backup Status</h5>
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Create Backup
+                </button>
+            </div>
+            <div class="card-body">
+                {% if backups %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Backup ID</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Created</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for backup in backups %}
+                            <tr>
+                                <td>{{ backup.id }}</td>
+                                <td>{{ backup.type }}</td>
+                                <td>{{ backup.size }}</td>
+                                <td>{{ backup.created_at|timesince }} ago</td>
+                                <td>
+                                    <span class="badge bg-{{ backup.status_color }}">
+                                        {{ backup.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary">Download</button>
+                                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center my-3">No backups available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Refresh system status every minute
+    setInterval(function() {
+        location.reload();
+    }, 60000);
+</script>
+{% endblock %}

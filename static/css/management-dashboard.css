@@ -1,0 +1,161 @@
+/* Management-specific customizations for the metric cards */
+.metric-card[data-metric-type] {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.metric-card[data-metric-type]:hover {
+    transform: scale(1.03);
+}
+
+.metric-card[data-metric-type]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent 0%, rgba(255,255,255,0.05) 100%);
+    pointer-events: none;
+}
+
+/* Metric card values and trends */
+.metric-card .metric-value {
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.metric-card .metric-trend {
+    font-size: 0.9rem;
+}
+
+.metric-card .trend-up {
+    color: lightgreen;
+}
+
+.metric-card .trend-down {
+    color: lightcoral;
+}
+
+/* Card color customizations */
+.metric-card[data-metric-type="revenue"] {
+    border-left-color: var(--bs-primary);
+}
+
+.metric-card[data-metric-type="orders"] {
+    border-left-color: var(--bs-success);
+}
+
+.metric-card[data-metric-type="customers"] {
+    border-left-color: var(--bs-info);
+}
+
+.metric-card[data-metric-type="inventory"] {
+    border-left-color: var(--bs-warning);
+}
+
+/* Enhanced drill-down modal */
+#metricDetailModal .modal-dialog {
+    max-width: 800px;
+}
+
+#metricDetailModal .card {
+    height: 100%;
+    margin-bottom: 1rem;
+}
+
+#metricDetailModal .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+#metricDetailModal .list-group-flush {
+    flex-grow: 1;
+}
+
+/* Time range selector enhancements */
+.btn-time-range {
+    min-width: 80px;
+}
+
+/* Chart container styles inherited from dark-theme.css */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Chart loading state */
+.chart-container.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-container.loading::before {
+    content: '⌛';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    color: var(--bs-primary);
+    font-size: 2rem;
+}
+
+/* Team performance table enhancements */
+.team-performance-table th {
+    font-weight: 500;
+    border-bottom-width: 1px;
+}
+
+.team-performance-table .status-badge {
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+}
+
+/* Print optimizations */
+@media print {
+    .metric-card[data-metric-type]::before {
+        display: none;
+    }
+    
+    .chart-container {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    
+    .metric-card {
+        break-inside: avoid;
+        border-left-width: 2px !important;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .metric-card .metric-value {
+        font-size: 2rem;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .team-performance-table {
+        font-size: 0.875rem;
+    }
+}
