@@ -1,0 +1,46 @@
+{% load static %}
+
+<!-- Dashboard Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Dashboard</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'delivery:home' %}" class="left-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-chart-line"></i></span>
+                <span class="left-nav-text">Delivery Dashboard</span>
+            </a>
+        </li>
+        <li class="left-nav-item">
+            <a href="{% url 'delivery:delivery_stats' %}" class="left-nav-link {% if request.resolver_match.url_name == 'delivery_stats' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-chart-bar"></i></span>
+                <span class="left-nav-text">Delivery Statistics</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Deliveries Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Deliveries</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'delivery:delivery_list' %}" class="left-nav-link {% if request.resolver_match.url_name == 'delivery_list' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-truck"></i></span>
+                <span class="left-nav-text">All Deliveries</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Routes Section -->
+<div class="left-nav-section">
+    <div class="left-nav-header">Routes</div>
+    <ul class="left-nav-menu">
+        <li class="left-nav-item">
+            <a href="{% url 'delivery:route_list' %}" class="left-nav-link {% if request.resolver_match.url_name == 'route_list' %}active{% endif %}">
+                <span class="left-nav-icon"><i class="fas fa-route"></i></span>
+                <span class="left-nav-text">All Routes</span>
+            </a>
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,89 @@
+{% extends 'warehouse/base.html' %}
+{% load static %}
+
+{% block title %}Picking List - Golden Gate North{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3">Order Picking</h1>
+                <div>
+                    <button class="btn btn-success me-2">
+                        <i class="fas fa-print"></i> Print Pick Lists
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Picking Orders -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Pick List #</th>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Assigned To</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if picking_orders %}
+                            {% for order in picking_orders %}
+                            <tr>
+                                <td>{{ order.pick_list_number }}</td>
+                                <td>{{ order.order_number }}</td>
+                                <td>{{ order.customer_name }}</td>
+                                <td>{{ order.item_count }} items</td>
+                                <td>
+                                    {% if order.priority == 'high' %}
+                                    <span class="badge bg-danger">High</span>
+                                    {% elif order.priority == 'medium' %}
+                                    <span class="badge bg-warning">Medium</span>
+                                    {% else %}
+                                    <span class="badge bg-info">Normal</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if order.status == 'pending' %}
+                                    <span class="badge bg-secondary">Pending</span>
+                                    {% elif order.status == 'in_progress' %}
+                                    <span class="badge bg-primary">In Progress</span>
+                                    {% elif order.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ order.assigned_to|default:"Unassigned" }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success" title="Start Picking">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center">No picking orders available.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,37 @@
+<div class="left-nav-content">
+    <div class="left-nav-section">
+        <div class="left-nav-header">Admin Tools</div>
+        <ul class="left-nav-menu">
+            <li class="left-nav-item">
+                <a href="{% url 'admin_tools:home' %}" class="left-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <span class="left-nav-icon"><i class="fas fa-home"></i></span>
+                    <span class="left-nav-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="left-nav-item">
+                <a href="{% url 'admin_tools:user_list' %}" class="left-nav-link {% if request.resolver_match.url_name == 'user_list' %}active{% endif %}">
+                    <span class="left-nav-icon"><i class="fas fa-users"></i></span>
+                    <span class="left-nav-text">User Management</span>
+                </a>
+            </li>
+            <li class="left-nav-item">
+                <a href="{% url 'admin_tools:system_settings' %}" class="left-nav-link {% if request.resolver_match.url_name == 'system_settings' %}active{% endif %}">
+                    <span class="left-nav-icon"><i class="fas fa-cog"></i></span>
+                    <span class="left-nav-text">System Settings</span>
+                </a>
+            </li>
+            <li class="left-nav-item">
+                <a href="{% url 'admin_tools:audit_logs' %}" class="left-nav-link {% if request.resolver_match.url_name == 'audit_logs' %}active{% endif %}">
+                    <span class="left-nav-icon"><i class="fas fa-history"></i></span>
+                    <span class="left-nav-text">Audit Logs</span>
+                </a>
+            </li>
+             <li class="left-nav-item">
+                <a href="{% url 'admin_tools:quickbooks_settings' %}" class="left-nav-link {% if request.resolver_match.url_name == 'quickbooks_settings' %}active{% endif %}">
+                    <span class="left-nav-icon"><i class="fas fa-sync"></i></span>
+                    <span class="left-nav-text">QuickBooks Sync</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

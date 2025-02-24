@@ -1,0 +1,74 @@
+{% extends 'warehouse/base.html' %}
+{% load static %}
+
+{% block title %}Inventory List - Golden Gate North{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3">Inventory List</h1>
+                <a href="{% url 'warehouse:inventory_add' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Inventory
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if inventory_items %}
+                            {% for item in inventory_items %}
+                            <tr>
+                                <td>{{ item.sku }}</td>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.category }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>${{ item.unit_price }}</td>
+                                <td>
+                                    {% if item.quantity > item.reorder_point %}
+                                    <span class="badge bg-success">In Stock</span>
+                                    {% elif item.quantity > 0 %}
+                                    <span class="badge bg-warning">Low Stock</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Out of Stock</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'warehouse:inventory_detail' item.pk %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'warehouse:inventory_adjust' item.pk %}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center">No inventory items found.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

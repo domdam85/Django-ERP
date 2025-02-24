@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block left_nav %}
+    {% include 'admin_tools/left_nav.html' %}
+{% endblock %}
+
+{% block content %}
+    {% block admin_tools_content %}{% endblock %} {# Define a block for admin_tools specific content #}
+{% endblock %}

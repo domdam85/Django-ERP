@@ -1,0 +1,52 @@
+{% extends 'sales/base_content.html' %}
+{% load static %}
+
+{% block title %}New Customer - ERP System{% endblock %}
+
+{% block sales_content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">New Customer</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="name" class="form-label">Company Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="contact_person" class="form-label">Contact Person</label>
+                <input type="text" class="form-control" id="contact_person" name="contact_person" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="phone" class="form-label">Phone</label>
+                <input type="tel" class="form-control" id="phone" name="phone" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="address" class="form-label">Address</label>
+                <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'sales:customer_list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create Customer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings - ERP System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Settings Navigation -->
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" role="tablist">
+                        <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#notifications" role="tab">
+                            <i class="fas fa-bell me-2"></i> Notifications
+                        </a>
+                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#appearance" role="tab">
+                            <i class="fas fa-paint-brush me-2"></i> Appearance
+                        </a>
+                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#privacy" role="tab">
+                            <i class="fas fa-shield-alt me-2"></i> Privacy
+                        </a>
+                        <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#integrations" role="tab">
+                            <i class="fas fa-plug me-2"></i> Integrations
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <!-- Settings Content -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- Notifications Settings -->
+                        <div class="tab-pane fade show active" id="notifications" role="tabpanel">
+                            <h4 class="card-title">Notification Settings</h4>
+                            <form method="post" action="{% url 'overview:settings' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="settings_type" value="notifications">
+                                
+                                <div class="mb-4">
+                                    <h5>Email Notifications</h5>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" id="notify_orders" name="notify_orders" {% if settings.notify_orders %}checked{% endif %}>
+                                        <label class="form-check-label" for="notify_orders">New Orders</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" id="notify_deliveries" name="notify_deliveries" {% if settings.notify_deliveries %}checked{% endif %}>
+                                        <label class="form-check-label" for="notify_deliveries">Delivery Updates</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" id="notify_inventory" name="notify_inventory" {% if settings.notify_inventory %}checked{% endif %}>
+                                        <label class="form-check-label" for="notify_inventory">Low Inventory Alerts</label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <h5>System Notifications</h5>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" id="notify_tasks" name="notify_tasks" {% if settings.notify_tasks %}checked{% endif %}>
+                                        <label class="form-check-label" for="notify_tasks">Task Assignments</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" id="notify_mentions" name="notify_mentions" {% if settings.notify_mentions %}checked{% endif %}>
+                                        <label class="form-check-label" for="notify_mentions">Mentions</label>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Save Notification Settings</button>
+                            </form>
+                        </div>
+
+                        <!-- Appearance Settings -->
+                        <div class="tab-pane fade" id="appearance" role="tabpanel">
+                            <h4 class="card-title">Appearance Settings</h4>
+                            <form method="post" action="{% url 'overview:settings' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="settings_type" value="appearance">
+                                
+                                <div class="mb-4">
+                                    <h5>Theme</h5>
+                                    <div class="form-check mb-2">
+                                        <input type="radio" class="form-check-input" id="theme_light" name="theme" value="light" {% if settings.theme == 'light' %}checked{% endif %}>
+                                        <label class="form-check-label" for="theme_light">Light</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="radio" class="form-check-input" id="theme_dark" name="theme" value="dark" {% if settings.theme == 'dark' %}checked{% endif %}>
+                                        <label class="form-check-label" for="theme_dark">Dark</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="radio" class="form-check-input" id="theme_system" name="theme" value="system" {% if settings.theme == 'system' %}checked{% endif %}>
+                                        <label class="form-check-label" for="theme_system">System Default</label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <h5>Dashboard Layout</h5>
+                                    <select class="form-select" name="dashboard_layout">
+                                        <option value="default" {% if settings.dashboard_layout == 'default' %}selected{% endif %}>Default</option>
+                                        <option value="compact" {% if settings.dashboard_layout == 'compact' %}selected{% endif %}>Compact</option>
+                                        <option value="comfortable" {% if settings.dashboard_layout == 'comfortable' %}selected{% endif %}>Comfortable</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Save Appearance Settings</button>
+                            </form>
+                        </div>
+
+                        <!-- Privacy Settings -->
+                        <div class="tab-pane fade" id="privacy" role="tabpanel">
+                            <h4 class="card-title">Privacy Settings</h4>
+                            <form method="post" action="{% url 'overview:settings' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="settings_type" value="privacy">
+                                
+                                <div class="mb-4">
+                                    <h5>Activity Visibility</h5>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" id="show_online_status" name="show_online_status" {% if settings.show_online_status %}checked{% endif %}>
+                                        <label class="form-check-label" for="show_online_status">Show Online Status</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input" id="show_activity_status" name="show_activity_status" {% if settings.show_activity_status %}checked{% endif %}>
+                                        <label class="form-check-label" for="show_activity_status">Show Activity Status</label>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Save Privacy Settings</button>
+                            </form>
+                        </div>
+
+                        <!-- Integrations Settings -->
+                        <div class="tab-pane fade" id="integrations" role="tabpanel">
+                            <h4 class="card-title">Integration Settings</h4>
+                            <div class="mb-4">
+                                <h5>QuickBooks Integration</h5>
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-0">QuickBooks Desktop</h6>
+                                                <p class="text-muted mb-0">{% if settings.quickbooks_connected %}Connected{% else %}Not Connected{% endif %}</p>
+                                            </div>
+                                            {% if settings.quickbooks_connected %}
+                                            <button class="btn btn-outline-danger">Disconnect</button>
+                                            {% else %}
+                                            <button class="btn btn-primary">Connect</button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h5>Other Integrations</h5>
+                                <p class="text-muted">More integrations coming soon...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle tab persistence
+    $(document).ready(function() {
+        // Get active tab from localStorage
+        var activeTab = localStorage.getItem('settings_active_tab');
+        if (activeTab) {
+            $('.list-group-item[href="' + activeTab + '"]').tab('show');
+        }
+
+        // Store active tab in localStorage
+        $('.list-group-item').on('shown.bs.tab', function (e) {
+            localStorage.setItem('settings_active_tab', $(e.target).attr('href'));
+        });
+    });
+</script>
+{% endblock %}

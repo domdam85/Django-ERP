@@ -1,0 +1,78 @@
+{% extends 'management/base_content.html' %}
+{% load static %}
+
+{% block management_content %}
+<div class="row">
+    {% for category in report_categories %}
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="icon-circle bg-primary text-white">
+                            <i class="fas {{ category.icon }}"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title mb-0">{{ category.name }}</h5>
+                    </div>
+                </div>
+                <p class="card-text text-muted">{{ category.description }}</p>
+                <a href="{% url category.url %}" class="btn btn-primary">
+                    View Reports <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Reports</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{% url 'management:sales_report' %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Monthly Sales Report</h6>
+                            <small class="text-muted">3 days ago</small>
+                        </div>
+                        <p class="mb-1">Sales performance overview for the current month</p>
+                    </a>
+                    <a href="{% url 'management:inventory_report' %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Stock Level Report</h6>
+                            <small class="text-muted">5 days ago</small>
+                        </div>
+                        <p class="mb-1">Current inventory status and low stock alerts</p>
+                    </a>
+                    <a href="{% url 'management:delivery_report' %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Delivery Performance Report</h6>
+                            <small class="text-muted">1 week ago</small>
+                        </div>
+                        <p class="mb-1">Analysis of delivery times and success rates</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+</style>
+{% endblock %}

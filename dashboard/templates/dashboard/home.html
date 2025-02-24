@@ -1,0 +1,133 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Overview - Golden Gate North{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3">Business Overview</h1>
+            <p class="text-muted">Overview of system operations and metrics</p>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Sales</h5>
+                    <h2 class="display-6">${{ today_sales|default:"0.00" }}</h2>
+                    <p class="card-text">
+                        <small>{{ today_orders|default:"0" }} orders</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Deliveries</h5>
+                    <h2 class="display-6">{{ pending_deliveries|default:"0" }}</h2>
+                    <p class="card-text">
+                        <small>{{ routes_active|default:"0" }} active routes</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Low Stock Items</h5>
+                    <h2 class="display-6">{{ low_stock_count|default:"0" }}</h2>
+                    <p class="card-text">
+                        <small>Need attention</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Open Tasks</h5>
+                    <h2 class="display-6">{{ open_tasks|default:"0" }}</h2>
+                    <p class="card-text">
+                        <small>{{ urgent_tasks|default:"0" }} urgent</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Recent Activity -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    {% if activities %}
+                    <div class="list-group list-group-flush">
+                        {% for activity in activities %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ activity.title }}</h6>
+                                <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1">{{ activity.description }}</p>
+                            <small class="text-muted">{{ activity.user }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center my-3">No recent activity</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Your Tasks</h5>
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                    <div class="list-group list-group-flush">
+                        {% for task in tasks %}
+                        <div class="list-group-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="task{{ task.id }}">
+                                <label class="form-check-label" for="task{{ task.id }}">
+                                    {{ task.title }}
+                                    {% if task.priority == 'urgent' %}
+                                    <span class="badge bg-danger">Urgent</span>
+                                    {% endif %}
+                                </label>
+                            </div>
+                            <small class="text-muted">Due {{ task.due_date|timeuntil }} from now</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center my-3">No pending tasks</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Refresh dashboard data every 5 minutes
+    setInterval(function() {
+        location.reload();
+    }, 300000);
+</script>
+{% endblock %}

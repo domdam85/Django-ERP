@@ -1,0 +1,154 @@
+{% extends 'management/base_content.html' %}
+{% load static %}
+
+{% block management_content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Delivery Performance</h5>
+                <div class="btn-group">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">PDF</a></li>
+                        <li><a class="dropdown-item" href="#">Excel</a></li>
+                        <li><a class="dropdown-item" href="#">CSV</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Deliveries</h5>
+                                <h2 class="display-4">523</h2>
+                                <p class="mb-0">This Month</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">On-Time</h5>
+                                <h2 class="display-4">92%</h2>
+                                <p class="mb-0">Delivery Rate</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">Average Time</h5>
+                                <h2 class="display-4">2.5h</h2>
+                                <p class="mb-0">Per Delivery</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body">
+                                <h5 class="card-title">Pending</h5>
+                                <h2 class="display-4">45</h2>
+                                <p class="mb-0">Deliveries</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Deliveries</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Delivery Address</th>
+                                <th>Status</th>
+                                <th>Estimated Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#12345</td>
+                                <td>John Doe</td>
+                                <td>123 Main St, City</td>
+                                <td><span class="badge bg-success">Delivered</span></td>
+                                <td>2h 15m</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">Details</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#12346</td>
+                                <td>Jane Smith</td>
+                                <td>456 Oak Ave, Town</td>
+                                <td><span class="badge bg-warning">In Transit</span></td>
+                                <td>1h 30m</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">Details</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Delivery Time Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="deliveryTimeChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('deliveryTimeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['< 1h', '1-2h', '2-3h', '> 3h'],
+            datasets: [{
+                data: [30, 40, 20, 10],
+                backgroundColor: [
+                    'rgb(40, 167, 69)',
+                    'rgb(23, 162, 184)',
+                    'rgb(255, 193, 7)',
+                    'rgb(220, 53, 69)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

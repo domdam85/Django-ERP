@@ -1,0 +1,51 @@
+{% extends 'sales/base_content.html' %}
+{% load static %}
+
+{% block sales_content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>{{ page_title }}</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Sales Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in sales_data %}
+                                <tr>
+                                    <td>{{ item.category }}</td>
+                                    <td>${{ item.amount|floatformat:2 }}</td>
+                                    <td>{{ item.percentage|floatformat:1 }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>Total</th>
+                                    <th>${{ total_sales|floatformat:2 }}</th>
+                                    <th>100%</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

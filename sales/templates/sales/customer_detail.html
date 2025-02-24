@@ -1,0 +1,119 @@
+{% extends 'sales/base_content.html' %}
+{% load static %}
+
+{% block title %}{{ customer.name }} - Customer Details{% endblock %}
+
+{% block sales_content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Customer Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="fw-bold">Company Name</label>
+                    <p class="mb-0">{{ customer.name }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">Contact Person</label>
+                    <p class="mb-0">{{ customer.contact_person }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">Email</label>
+                    <p class="mb-0">{{ customer.email }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">Phone</label>
+                    <p class="mb-0">{{ customer.phone }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">Address</label>
+                    <p class="mb-0">{{ customer.address }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">Notes</label>
+                    <p class="mb-0">{{ customer.notes|default:"No notes available" }}</p>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'sales:customer_edit' customer.id %}" class="btn btn-primary me-2">Edit Customer</a>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteCustomerModal">
+                        Delete Customer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Orders</h5>
+                <a href="{% url 'sales:order_create' %}?customer={{ customer.id }}" class="btn btn-primary btn-sm">
+                    New Order
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td>{{ order.number }}</td>
+                                <td>{{ order.date|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge bg-{{ order.status_color }}">
+                                        {{ order.status }}
+                                    </span>
+                                </td>
+                                <td>${{ order.total|floatformat:2 }}</td>
+                                <td>
+                                    <a href="{% url 'sales:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No orders found for this customer.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Customer Modal -->
+<div class="modal fade" id="deleteCustomerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete {{ customer.name }}? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'sales:customer_delete' customer.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Customer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

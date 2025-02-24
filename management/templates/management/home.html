@@ -1,0 +1,272 @@
+{% extends 'management/base.html' %}
+{% load management_filters %}
+
+{% block title %}Management Dashboard - ERP System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3">Management Dashboard</h1>
+            <p class="text-muted">Overview of business performance and metrics</p>
+        </div>
+        <div class="col-auto">
+            <div class="btn-group">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-download"></i> Export Report
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Daily Report</a></li>
+                    <li><a class="dropdown-item" href="#">Weekly Report</a></li>
+                    <li><a class="dropdown-item" href="#">Monthly Report</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#">Custom Report</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Revenue</h5>
+                    <h2 class="display-6">${{ total_revenue|default:"0.00" }}</h2>
+                    <p class="card-text">
+                        <small>
+                            {% if revenue_trend > 0 %}
+                            <i class="fas fa-arrow-up"></i>
+                            {% else %}
+                            <i class="fas fa-arrow-down"></i>
+                            {% endif %}
+                            {{ revenue_trend|abs }}% from last month
+                        </small>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Orders Completed</h5>
+                    <h2 class="display-6">{{ orders_completed|default:"0" }}</h2>
+                    <p class="card-text">
+                        <small>{{ completion_rate|default:"0" }}% completion rate</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Customers</h5>
+                    <h2 class="display-6">{{ active_customers|default:"0" }}</h2>
+                    <p class="card-text">
+                        <small>{{ new_customers|default:"0" }} new this month</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Inventory Value</h5>
+                    <h2 class="display-6">${{ inventory_value|default:"0.00" }}</h2>
+                    <p class="card-text">
+                        <small>{{ stock_items|default:"0" }} items in stock</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Revenue Chart -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Revenue Trends</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-secondary active">Week</button>
+                        <button class="btn btn-sm btn-outline-secondary">Month</button>
+                        <button class="btn btn-sm btn-outline-secondary">Quarter</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Key Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>Order Fulfillment Rate</span>
+                            <span class="text-primary">{{ fulfillment_rate|default:"0" }}%</span>
+                        </label>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ fulfillment_rate|default:'0' }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>On-Time Delivery Rate</span>
+                            <span class="text-primary">{{ delivery_rate|default:"0" }}%</span>
+                        </label>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ delivery_rate|default:'0' }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>Customer Satisfaction</span>
+                            <span class="text-primary">{{ satisfaction_rate|default:"0" }}%</span>
+                        </label>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ satisfaction_rate|default:'0' }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label d-flex justify-content-between">
+                            <span>Inventory Accuracy</span>
+                            <span class="text-primary">{{ inventory_accuracy|default:"0" }}%</span>
+                        </label>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ inventory_accuracy|default:'0' }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Reports -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Reports</h5>
+                    <a href="{% url 'management:reports' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_reports %}
+                    <div class="list-group list-group-flush">
+                        {% for report in recent_reports %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ report.title }}</h6>
+                                <small class="text-muted">{{ report.created_at|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1">{{ report.description }}</p>
+                            <small>
+                                <a href="#" class="text-primary">
+                                    <i class="fas fa-download"></i> Download Report
+                                </a>
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center my-3">No recent reports</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Performance -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Team Performance</h5>
+                </div>
+                <div class="card-body">
+                    {% if team_performance %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Team</th>
+                                    <th>Tasks</th>
+                                    <th>Completion</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for team in team_performance %}
+                                <tr>
+                                    <td>{{ team.name }}</td>
+                                    <td>{{ team.tasks_completed }}/{{ team.total_tasks }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: {{ team.completion_rate }}%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ team.performance_color }}">
+                                            {{ team.performance_rating }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center my-3">No team performance data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css">
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script>
+    // Revenue Chart
+    var ctx = document.getElementById('revenueChart').getContext('2d');
+    var revenueChart = new Chart(ctx, {
+        type: 'line',
+        data: {{ revenue_chart_data|safe }},
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Refresh management data every 5 minutes
+    setInterval(function() {
+        location.reload();
+    }, 300000);
+</script>
+{% endblock %}

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<QBWCXML>
+    <App>
+        <Name>YourAppName</Name>
+        <Description>YourAppDescription</Description>
+        <Version>1.0</Version>
+        <QBWCVersion>1.0</QBWCVersion>
+        <IsReadOnly>false</IsReadOnly>
+        <OwnerID>YourOwnerID</OwnerID>
+        <FileID>YourFileID</FileID>
+        <AppURL>http://localhost:8000/quickbooks/sync/</AppURL>
+        <UserName>YourUsername</UserName>
+        <Password>YourPassword</Password>
+        <Frequency>10</Frequency>
+        <MaxRetries>3</MaxRetries>
+        <RetryInterval>5</RetryInterval>
+        <SendRequestOnError>true</SendRequestOnError>
+        <RequestOnError>true</RequestOnError>
+    </App>
+</QBWCXML>
