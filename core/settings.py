@@ -33,8 +33,6 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    '192.168.1.50',  # Your specific IP address
-    '192.168.1.*',   # Allow all IPs in your subnet
     '*',            # Allow all hosts in development
 ]
 
@@ -77,7 +75,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
 ]
 
-ROOT_URLCONF = 'erp_system.urls'
+ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
     {
@@ -95,7 +93,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'erp_system.wsgi.application'
+WSGI_APPLICATION = 'core.wsgi.application'
 
 
 # Database

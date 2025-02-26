@@ -45,7 +45,7 @@
 ```
 /Django-ERP (workspace)/
     manage.py
-    /erp_system/         # Global configurations (settings, urls, wsgi)
+    /CORE/         # Global configurations (settings, urls, wsgi)
     /warehouse/              # Warehouse operations: receiving, picking, staging, loading, cycle counts (all interfaces are tablet-optimized)
         models.py
         views.py
