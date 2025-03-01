@@ -9,3 +9,5 @@ pillow>=10.1.0
 django-environ>=0.11.2
 whitenoise>=6.6.0
 gunicorn>=21.2.0
+conductor-py>=1.18.0
+django-redis>=5.4.0
